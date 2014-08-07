@@ -35,10 +35,10 @@ jobs = [
         ]
 
  # Add pdf variations to list of jobs
-# for variation in range(1,45+1):
-#     jobs.append('-p %i' % variation)
-#     jobs.append('--is7TeV -p %i' % variation)
-#     pass
+for variation in range(1,45+1):
+    jobs.append('-p %i' % variation)
+    jobs.append('--is7TeV -p %i' % variation)
+    pass
     
 parser = OptionParser()
 parser.add_option('-j','--job_number',type='int',dest='jobNumber',default=0)
