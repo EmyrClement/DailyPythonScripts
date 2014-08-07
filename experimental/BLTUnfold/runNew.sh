@@ -1,3 +1,4 @@
+set -e
 export ORIGDIR=`pwd`
 cd ../
 . $VO_CMS_SW_DIR/cmsset_default.sh
