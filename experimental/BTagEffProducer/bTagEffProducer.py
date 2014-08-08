@@ -7,11 +7,11 @@ from optparse import OptionParser
 
 fileNames = {
              '8TeV' : {
-                    'TTJets' : '/storage/TopQuarkGroup/mc/8TeV/BLT/NoBTag/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/TTJets_nTuple_53X_mc_merged_002.root',
+                    'TTJets' : '/storage/TopQuarkGroup/mc/8TeV/BLT/NoBTag/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/TTJets_nTuple_53X_mc_merged.root',
                     'WJets' : 'WJets8TeV',
                 },
              '7TeV' : {
-                    'TTJets' : '/storage/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/NoBTag/TTJets_MSDecays_central_TuneZ2_7TeV-madgraph-tauola/TTJets_nTuple_53X_mc_merged_001.root',
+                    'TTJets' : '/storage/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/NoBTag/TTJets_MSDecays_central_TuneZ2_7TeV-madgraph-tauola/TTJets_nTuple_53X_mc_merged.root',
                      'WJets' : 'WJets8TeV',
                }
              }
