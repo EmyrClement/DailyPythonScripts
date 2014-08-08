@@ -35,7 +35,7 @@ jobs = [
         ]
 
  # Add pdf variations to list of jobs
-for variation in range(1,45+1):
+for variation in range(1,45):
     jobs.append('-p %i' % variation)
     jobs.append('--is7TeV -p %i' % variation)
     pass
