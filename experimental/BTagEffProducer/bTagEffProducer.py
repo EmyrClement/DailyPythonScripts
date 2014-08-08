@@ -7,11 +7,11 @@ from optparse import OptionParser
 
 fileNames = {
              '8TeV' : {
-                    'TTJets' : '/gpfs_phys/storm/cms/user/ejclemen/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola_Summer12_DR53X-PU_S10_START53_V7C-v1_AODSIM_nTuple_v10_LeptonPlus3Jets_BLTforBTagEff/TTJets_nTuple_53X_mc_101_1_tsE.root',
+                    'TTJets' : '/storage/TopQuarkGroup/mc/8TeV/BLT/NoBTag/TTJets_MassiveBinDECAY_TuneZ2star_8TeV-madgraph-tauola/TTJets_nTuple_53X_mc_merged_002.root',
                     'WJets' : 'WJets8TeV',
                 },
              '7TeV' : {
-                     'TTJets' : 'TTJets7TeV',
+                    'TTJets' : '/storage/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/NoBTag/TTJets_MSDecays_central_TuneZ2_7TeV-madgraph-tauola/TTJets_nTuple_53X_mc_merged_001.root',
                      'WJets' : 'WJets8TeV',
                }
              }
