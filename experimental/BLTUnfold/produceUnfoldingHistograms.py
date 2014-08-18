@@ -162,7 +162,7 @@ def main():
                 pass
                         
             for variable in bin_edges:
-                if options.debug and variable != 'HT' : continue
+                if options.debug and ( variable != 'HT' and variable != 'MET' ) : continue
                 
                 print '--->Doing variable :',variable
 
@@ -221,7 +221,7 @@ def main():
                 if options.fineBinned:
                     minVar = bin_edges[variable][0]
                     maxVar = bin_edges[variable][-1]
-                    nBins = int(maxVar - minVar)
+                    nBins = int((maxVar - minVar))
                     truth = Hist( nBins, minVar, maxVar, name='truth')
                     measured = Hist( nBins, minVar, maxVar, name='measured')
                     fake = Hist( nBins, minVar, maxVar, name='fake')
@@ -230,8 +230,12 @@ def main():
                     response_only_fakes = Hist2D( nBins, minVar, maxVar, nBins, minVar, maxVar, name='response_only_fakes')
                     
                 # Some interesting histograms
+                genWeightHist = Hist( 20, 0, 2, name='genWeight')
                 puOffline = Hist( 20, 0, 2, name='puWeights_offline')
-                 
+                bTagWeightsOffline = Hist( 20, 0, 2, name='bTagWeights_offline')
+                leptonSFWeightsOffline = Hist( 20, 0, 2, name='leptonSFWeights_offline')
+                weightsOffline = Hist( 20, 0, 2, name='weights_offline')
+                
                 # Fill histograms
                 # 1D
                 if not options.donothing:
@@ -244,8 +248,15 @@ def main():
                     tree.Draw(recoVariable+':'+genVariable,offlineWeight+'*'+fakeSelection,hist=response_only_fakes)
 
                     if options.extraHists:
+                        tree.Draw( genWeight, genSelection, hist = genWeightHist)
                         tree.Draw( 'unfolding.puWeight','unfolding.OfflineSelection',hist=puOffline)
+                        tree.Draw( 'unfolding.bTagWeight','unfolding.OfflineSelection',hist=bTagWeightsOffline)
+                        tree.Draw( scaleFactor,'unfolding.OfflineSelection',hist=leptonSFWeightsOffline)
+                        tree.Draw(offlineWeight,'unfolding.OfflineSelection',hist=weightsOffline )
                         pass
+                
+#                 truth = truth.rebinned(bin_edges[variable])
+#                 measured = measured.rebinned(bin_edges[variable])
                 
                 # Output histgorams to file
                 outputDir.cd()
@@ -256,7 +267,11 @@ def main():
                 response_without_fakes.Write()
                 response_only_fakes.Write()
                 if options.extraHists:
+                    genWeightHist.Write()
                     puOffline.Write()
+                    bTagWeightsOffline.Write()
+                    leptonSFWeightsOffline.Write()
+                    weightsOffline.Write()
                 pass
             pass
         pass
