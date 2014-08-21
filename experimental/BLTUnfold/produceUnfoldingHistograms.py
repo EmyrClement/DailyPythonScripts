@@ -134,6 +134,11 @@ def main():
     else:
         outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric.root' % energySuffix
 
+        
+    if options.fineBinned:
+        outputFileName = outputFileName.replace('_asymmetric','')
+        pass
+    
     with root_open( file_name, 'read' ) as f, root_open( outputFileName, 'recreate') as out:
         
         copyEventFilterHist( f, out )
