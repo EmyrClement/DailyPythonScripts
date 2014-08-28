@@ -27,7 +27,7 @@ for category in config_7TeV.categories_and_prefixes.keys():
 
 # merge generator systematics histogram files
 for sample, input_samples in sample_summations.iteritems():
-    if not sample in ['WJets', 'VJets-matchingup',
+    if not sample in ['VJets-matchingup',
                       'VJets-matchingdown', 'VJets-scaleup',
                       'VJets-scaledown']: # No 'DYJets' because there is only one inclusive DYJets dataset
         continue
