@@ -17,7 +17,7 @@ from matplotlib.ticker import MultipleLocator
 from itertools import cycle
 
 from matplotlib import rc
-rc('font',**CMS.font)
+# rc('font',**CMS.font)
 rc( 'text', usetex = True )
 
 class Histogram_properties:
