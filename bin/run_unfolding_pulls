@@ -19,7 +19,9 @@ def main():
         config_file, workdir = create_crab_configuration(options.crab_version, 
                                                          options.use_git)
 
-        os.system('source run_crab -c %i -f %s -w %s -d 1 prepare' % ( options.crab_version, config_file, workdir ) )
+        command = 'source run_crab -c %i -f %s -w %s -d 1 prepare' % ( options.crab_version, config_file, workdir )
+        print 'Running command :',command
+        os.system( command )
 
         # call([
         #       'run_crab', 

@@ -52,6 +52,7 @@ setup_DPS() {
 	# Some checks
 	if [[ $debug == 1 ]]; then
 		ls
+		ls ..
 	fi
 
 	cd ..
