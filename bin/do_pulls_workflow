@@ -17,32 +17,49 @@ options[7]="--offset_toy_mc=35 --offset_toy_data=70"
 options[8]="--offset_toy_mc=70 --offset_toy_data=35"
 
 
-echo 'Creating toy MC for all variables, 105x105, both electron and muon channels'
+echo 'Not Creating toy MC for all variables, 105x105, both electron and muon channels'
 for var in MET HT ST WPT MT; do
 echo "Doing unfolding pulls for: $var"
-	case "$var" in
-		MET)
-			k=3
-			;;
-		HT)
-			k=4
-			;;
-		ST)
-			k=3
-			;;
-		MT)
-			k=2
-			;;
-		WPT)
-			k=3
-			;;
-		*)
-			k=3
-			;;
-	esac
+	# case "$var" in
+	# 	MET)
+	# 		ks=1 2 3 4 5 6
+	# 		;;
+	# 	HT)
+	# 		k=1 2 3 4 5 6 7
+	# 		;;
+	# 	ST)
+	# 		k=1 2 3 4 5 6 7 8
+	# 		;;
+	# 	MT)
+	# 		k=1 2 3
+	# 		;;
+	# 	WPT)
+	# 		k=1 2 3 4 5 6
+	# 		;;
+	# 	*)
+	# 		k=3
+	# 		;;
+	# esac
 	
 	for energy in 7 8; do
 		for c in electron muon; do
+			# for k in 2 3 4 5 6 7 8; do
+			# 	if [[ $var == MET && $k > 6 ]]
+			# 	then
+			# 		continue;
+			# 	elif [[ $var == HT && $k > 7 ]]
+			# 	then
+			# 		continue;
+			# 	elif [[ $var == ST && $k > 8 ]]
+			# 	then
+			# 		continue;
+			# 	elif [[ $var == MT && $k > 3 ]]
+			# 	then
+			# 		continue;
+			# 	elif [[ $var == WPT && $k > 6 ]]
+			# 	then
+			# 		continue;
+			# 	fi
 			echo "Producing pull data for $var variable, $c channel, kv=$k, sqrt(s) = $energy TeV"
 			for j in 1 2 3 4 5 6 7 8 9; do
 				echo "Doing part $j out of 9"
@@ -56,6 +73,7 @@ echo "Doing unfolding pulls for: $var"
 			done
 			nohup time python src/unfolding_tests/make_unfolding_pull_plots.py -i data/pull_data/7TeV/$var/35_input_toy_mc/k_value_$k -c $c -v $var -k $k -s $energy &> logs/pull_${var}_kv${k}_${c}_plots_${energy}TeV.log &
 			wait;
+			# done
 		done
 	done
 done
