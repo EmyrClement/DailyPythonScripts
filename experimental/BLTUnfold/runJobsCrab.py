@@ -13,6 +13,10 @@ jobs = [
         # Matching up/down
         '-s matchingup',
         '-s matchingdown',
+
+        # Mass up/down
+        '-s massup',
+        '-s massdown',
          
         # Other generators
         '-s powheg',

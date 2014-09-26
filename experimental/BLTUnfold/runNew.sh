@@ -6,7 +6,7 @@ export SCRAM_ARCH=slc6_amd64_gcc481
 cmsrel CMSSW_7_1_3
 cd CMSSW_7_1_3/src/
 cmsenv
-git clone https://github.com/EmyrClement/DailyPythonScripts.git -b BLT_Unfold_GetCrabWorking
+git clone https://github.com/EmyrClement/DailyPythonScripts.git -b BLT_Unfold
 cd DailyPythonScripts
 git submodule init && git submodule update
 ./setup_standalone.sh
