@@ -427,6 +427,11 @@ def make_2D_efficiency_plot(hist_passed, hist_total, efficiency, channel = 'elec
         if not (plot_efficiency_plus.IsBinUnderflow( bin ) or plot_efficiency_plus.IsBinOverflow( bin ) ):
             newBinContentPlus = plot_efficiency.GetEfficiency( bin ) + plot_efficiency.GetEfficiencyErrorUp( bin )
             newBinContentMinus = plot_efficiency.GetEfficiency( bin ) - plot_efficiency.GetEfficiencyErrorLow( bin )
+
+            # When efficiency is == 1, error up is 1.0.
+            # Prevent error + efficiency being > 1
+            if newBinContentPlus > 1 : newBinContentPlus = 1
+
             plot_efficiency_plus.SetBinContent( bin, newBinContentPlus )
             plot_efficiency_minus.SetBinContent( bin, newBinContentMinus )
 
