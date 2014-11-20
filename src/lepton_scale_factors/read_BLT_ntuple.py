@@ -8,7 +8,7 @@ tag and probe studies to estimate single lepton trigger efficiency.
 
 '''
 from config import CMS
-from rootpy.io import File
+from rootpy.io import File, root_open
 from rootpy import asrootpy, ROOTError
 from optparse import OptionParser
 from copy import deepcopy
@@ -27,7 +27,7 @@ from tools.ROOT_utililities import set_root_defaults
 from tools.file_utilities import make_folder_if_not_exists
 from tools.hist_utilities import hist_to_value_error_tuplelist
 from tools.plotting import make_plot, Histogram_properties
-from ROOT import TLorentzVector, TGraphAsymmErrors, TF1, gPad, gStyle
+from ROOT import TLorentzVector, TGraphAsymmErrors, TF1, gPad, gStyle, TChain
 from ROOT import RooFit, RooDataHist, RooArgList, RooAddPdf, RooRealVar, RooBreitWigner, RooExponential, RooFFTConvPdf, RooCBShape
 
 import numpy
@@ -216,6 +216,47 @@ def set_plot_styles(data_plot, mc_plot):
     mc_plot.SetLineColor(2)
     
     data_plot.SetMarkerSize(3)
+
+def setBranchStatuses( tree ):
+    tree.SetBranchStatus("*", 0)
+    tree.SetBranchStatus('Event.Run',1)
+    tree.SetBranchStatus(reco_leptons_collection + '.Px',1)
+    tree.SetBranchStatus(reco_leptons_collection + '.Py',1)
+    tree.SetBranchStatus(reco_leptons_collection + '.Pz',1)
+    tree.SetBranchStatus(reco_leptons_collection + '.Energy',1)
+    tree.SetBranchStatus(reco_leptons_collection + '.PrimaryVertexDXY',1)
+
+    tree.SetBranchStatus(mc_genparticles_collection + '.Px',1)
+    tree.SetBranchStatus(mc_genparticles_collection + '.Py',1)
+    tree.SetBranchStatus(mc_genparticles_collection + '.Pz',1)
+    tree.SetBranchStatus(mc_genparticles_collection + '.Energy',1)
+    tree.SetBranchStatus(mc_genparticles_collection + '.PdgId',1)
+
+    triggerObjects = ['TriggerObjectElectronLeg', 'TriggerObjectElectronIsoLeg', 'TriggerObjectSingleElectron', 'TriggerObjectMuon2012', 'TriggerObjectMuon2012Rho', 'TriggerObjectMuon1', 'TriggerObjectMuon2', 'TriggerObjectMuon2p1']
+    for to in triggerObjects:
+        tree.SetBranchStatus(to + '.Px',1)
+        tree.SetBranchStatus(to + '.Py',1)
+        tree.SetBranchStatus(to + '.Pz',1)
+        tree.SetBranchStatus(to + '.Energy',1)
+
+    if channel == 'electron':
+        tree.SetBranchStatus(reco_leptons_collection + '.PFRelIso03RhoEA',1)
+        tree.SetBranchStatus(reco_leptons_collection + '.mvaTrigV0',1)
+        tree.SetBranchStatus(reco_leptons_collection + '.passConversionVeto',1)
+        tree.SetBranchStatus(reco_leptons_collection + '.MissingHits',1)
+        tree.SetBranchStatus('cleanedJetsPFlowEPlusJets.CombinedSecondaryVertexBJetTag',1)
+
+    else:
+        tree.SetBranchStatus(reco_leptons_collection + '.PFRelIso04DeltaBeta',1)
+        tree.SetBranchStatus(reco_leptons_collection + '.isPFMuon',1)
+        tree.SetBranchStatus(reco_leptons_collection+'.GlobalTrack.NormalizedChi2',1)
+        tree.SetBranchStatus(reco_leptons_collection + '.Vertex.DistZ',1)
+        tree.SetBranchStatus(reco_leptons_collection+'.GlobalTrack.NumberOfValidMuonHits',1)
+        tree.SetBranchStatus(reco_leptons_collection+'.InnerTrack.TrackerLayersWithMeasurement',1)
+        tree.SetBranchStatus(reco_leptons_collection+'.InnerTrack.NumberOfValidPixelHits',1)
+        tree.SetBranchStatus(reco_leptons_collection+'.NumberOfMatchedStations',1)
+        tree.SetBranchStatus(reco_leptons_collection+'.isGlobalMuon',1)
+        tree.SetBranchStatus('cleanedJetsPFlowMuPlusJets.CombinedSecondaryVertexBJetTag',1)
 
 def set_parameter_limits(trigger_under_study, fit):
     if '_pt' in trigger_under_study:
@@ -446,12 +487,14 @@ def make_2D_efficiency_plot(hist_passed, hist_total, efficiency, channel = 'elec
         canvas.Print(output_folder + save_as_name + '_minus.' + output_format)
 
 def produce_pickle_files(hist_passed_data, hist_total_data, hist_passed_mc, hist_total_mc, channel = 'electron'):
-    global suffix, centre_of_mass, output_pickle_folder
+    global suffix, centre_of_mass, output_pickle_folder, output_folder
     output_pickle = open( output_pickle_folder + '/' + channel + '_' + suffix + '_' + str(centre_of_mass) + 'TeV.pkl', 'wb' )
     dictionary = {}
     
     data_efficiency = Efficiency(hist_passed_data, hist_total_data)
     mc_efficiency = Efficiency(hist_passed_mc, hist_total_mc)
+
+    scale_factor_hist = hist_total_data.Clone('scaleFactors')
 
     for i in range( number_of_eta_bin_edges - 1 ):
         lower_edge_eta = eta_bins[i]
@@ -469,16 +512,42 @@ def produce_pickle_files(hist_passed_data, hist_total_data, hist_passed_mc, hist
             data_efficiency_in_bin_error_up = data_efficiency.GetEfficiencyErrorUp( global_bin )
             data_efficiency_in_bin_error_down = data_efficiency.GetEfficiencyErrorLow( global_bin )
 
+            # Prevent up error from being large (suspected bug in TEfficiency?)
+            if data_efficiency_in_bin + data_efficiency_in_bin_error_up > 1:
+                data_efficiency_in_bin_error_up = 1-data_efficiency_in_bin
+
             mc_efficiency_in_bin = mc_efficiency.GetEfficiency( global_bin )
             mc_efficiency_in_bin_error_up = mc_efficiency.GetEfficiencyErrorUp( global_bin )
             mc_efficiency_in_bin_error_down = mc_efficiency.GetEfficiencyErrorLow( global_bin )
+
+            # Prevent up error from being large
+            if mc_efficiency_in_bin + mc_efficiency_in_bin_error_up > 1:
+                mc_efficiency_in_bin_error_up = 1-mc_efficiency_in_bin
 
             if mc_efficiency_in_bin != 0:
                 efficiency_ratio = data_efficiency_in_bin/mc_efficiency_in_bin
             else:
                 efficiency_ratio = 0
-            efficiency_ratio_error_up = math.sqrt(data_efficiency_in_bin_error_up**2 + mc_efficiency_in_bin_error_up**2)
-            efficiency_ratio_error_down = math.sqrt(data_efficiency_in_bin_error_down**2 + mc_efficiency_in_bin_error_down**2)
+
+            if mc_efficiency_in_bin != 0 and data_efficiency_in_bin !=0:
+                efficiency_ratio_error_up = efficiency_ratio * math.sqrt((data_efficiency_in_bin_error_up/data_efficiency_in_bin)**2 + (mc_efficiency_in_bin_error_up/mc_efficiency_in_bin)**2)
+                efficiency_ratio_error_down = efficiency_ratio * math.sqrt((data_efficiency_in_bin_error_down/data_efficiency_in_bin)**2 + (mc_efficiency_in_bin_error_down/mc_efficiency_in_bin)**2)
+            else :
+                efficiency_ratio_error_up = 0
+                efficiency_ratio_error_down = 0
+
+            scale_factor_hist.SetBinContent(global_bin, efficiency_ratio )
+            scale_factor_hist.SetBinError(global_bin, max(efficiency_ratio_error_up,efficiency_ratio_error_down) )
+
+            canvas = Canvas(width=700, height=500)
+            scale_factor_hist.Draw('COLZ TEXTE')
+
+            for output_format in output_formats:
+                canvas.Print(output_folder + 'scaleFactors_'+ channel + '_' + suffix + '.' + output_format)
+
+            outputRootFile = root_open(output_folder + 'scaleFactors_'+ channel + '_' + suffix + '.root' , 'recreate')
+            scale_factor_hist.Write()
+            outputRootFile.Close()
 
             dictionary[eta_bin_range]['pt_' + str(lower_edge_pt) + '_' + str(upper_edge_pt)] = {}
             dictionary[eta_bin_range]['pt_' + str(lower_edge_pt) + '_' + str(upper_edge_pt)]['data'] = \
@@ -501,6 +570,7 @@ def produce_pickle_files(hist_passed_data, hist_total_data, hist_passed_mc, hist
 
 def fit_Z_peak(histogram, save_as_name, channel, run_on = 'data'):
     global output_folder, output_formats, suffix, use_CB_convolution
+
     if channel == 'electron':
         title_channel = 'e+jets'
     else:
@@ -519,7 +589,7 @@ def fit_Z_peak(histogram, save_as_name, channel, run_on = 'data'):
     data_hist = RooDataHist( 'data_hist', 'data_hist', RooArgList( m_range ), histogram )
 
     # Fit Parameters for Breit-Wigner and exponential
-    mean = RooRealVar("mean", "Mass", 85.0, 60.0, 120.0)
+    mean = RooRealVar("mean", "Mass", 91.0, 60.0, 120.0)
     bw_sigma = RooRealVar("bw_sigma", "Width", 5.0, 1., 6.0)
     exp_lambda = RooRealVar("lambda", "slope", -0.1, -5., 0.)
 
@@ -539,8 +609,11 @@ def fit_Z_peak(histogram, save_as_name, channel, run_on = 'data'):
         bw_cb_convolution = RooFFTConvPdf("bwxCryBall", "Convoluted Crystal Ball and BW", m_range, breit_wigner, crystal_ball)
 
     # Construct the signal and background model
-    n_sig = RooRealVar("n_sig", "# signal events", 200, 0., 10000)
-    n_bkg = RooRealVar("n_bkg", "# background events", 200, 0., 10000)
+    # Set parameter limits according to number of entries in histogram
+    nEntries = histogram.GetEntries()
+    maxSig = nEntries*1.5
+    n_sig = RooRealVar("n_sig", "# signal events", maxSig/2, 0., maxSig)
+    n_bkg = RooRealVar("n_bkg", "# background events", maxSig/2, 0., maxSig)
     model = RooAddPdf("model", "s+b", RooArgList(breit_wigner, background), RooArgList(n_sig, n_bkg))
     
     # Alternatively, use BW*CB convolution
@@ -548,8 +621,9 @@ def fit_Z_peak(histogram, save_as_name, channel, run_on = 'data'):
         model = RooAddPdf("model", "s+b", RooArgList(bw_cb_convolution, background), RooArgList(n_sig, n_bkg))
 
     # Fit model to data
-    model.fitTo( data_hist, RooFit.PrintLevel(-1), RooFit.Verbose(False), RooFit.PrintEvalErrors(-1), RooFit.Warnings(False) )
-
+    print 'Everything set up.  Doing fit now'
+    model.fitTo( data_hist, RooFit.PrintLevel(3), RooFit.Verbose(False), RooFit.PrintEvalErrors(-1), RooFit.Warnings(False) )
+    print 'Fit done'
     # Plot data and composite PDF overlaid
     m_range_frame = m_range.frame()
     data_hist.plotOn(m_range_frame)
@@ -604,7 +678,9 @@ def make_Z_peak_plots(run_on = 'data', channel = 'electron'):
         pt_eta_bins_Z_peaks_passed = pt_eta_bins_Z_peaks_passed_mc
 
     # Make inclusive plots
+    print 'Total peak'
     fit_Z_peak(histograms['tagProbe_total_Z_peak'], 'tagProbe_total_Z_peak', channel, run_on)
+    print 'Passed peak'
     fit_Z_peak(histograms['tagProbe_passed_Z_peak'], 'tagProbe_passed_Z_peak', channel, run_on)
     
     if suffix == 'trigger':
@@ -1072,16 +1148,15 @@ def do_tag_and_probe_analysis( reco_leptons, hlt_leptons, mc_leptons, mode = 'da
     else:
         histograms = histograms_mc
 
-    if len(reco_leptons) == 1:
-        print 'Just one lepton in event!'
-        return
+    # if len(reco_leptons) == 1:
+    #     print 'Just one lepton in event!'
+    #     return
 
     if len(reco_leptons) >= 2:
         nEventsToConsider += 1
         for tag_lepton in reco_leptons:
             if passes_tag_selection( tag_lepton, hlt_leptons, match_to_trigger_object = options.doTrigger, channel = channel ):
                 nTagEvents += 1
-
                 # Fill histograms for tag lepton
                 histograms['tag_reco_lepton_pt'].Fill(tag_lepton.Pt())
                 histograms['tag_reco_lepton_eta'].Fill(tag_lepton.Eta())
@@ -1164,6 +1239,9 @@ if __name__ == '__main__':
         input_path = options.path + '/2012/'
         output_folder = options.output_folder + '/2012/'
 
+    if use_CB_convolution:
+        output_folder = output_folder + '/CBConvolution/'
+
     if ( options.doTrigger and options.doID ) or not ( options.doTrigger or options.doID):
         print 'Choose one of trigger or iso/id scale factors'
         sys.exit(1)
@@ -1185,11 +1263,11 @@ if __name__ == '__main__':
 
     if channel == 'electron':
         data_histFile = input_path + '/SingleElectron_trigger_study.root'
-        data_input_file = File(data_histFile)
-        data_tree = data_input_file.Get('rootTupleTreeEPlusJets/ePlusJetsTree')
+        data_input_file = data_histFile
+        data_tree = 'rootTupleTreeEPlusJets/ePlusJetsTree_noBTag'
         mc_histFile = input_path + '/DYJetsToLL_M-50.root'
-        mc_input_file = File(mc_histFile)
-        mc_tree = mc_input_file.Get('rootTupleTreeEPlusJets/ePlusJetsTree')
+        mc_input_file = mc_histFile
+        mc_tree = 'rootTupleTreeEPlusJets/ePlusJetsTree_noBTag'
         mc_genparticles_collection = 'GenParticle'
         reco_leptons_collection = 'selectedPatElectronsLoosePFlow'
         if centre_of_mass == 7:
@@ -1198,11 +1276,11 @@ if __name__ == '__main__':
             trigger_object_lepton = 'TriggerObjectSingleElectron'
     else:
         data_histFile = input_path + '/SingleMu_trigger_study.root'
-        data_input_file = File(data_histFile)
-        data_tree = data_input_file.Get('rootTupleTreeMuPlusJets/muPlusJetsTree')
+        data_input_file = data_histFile
+        data_tree = 'rootTupleTreeMuPlusJets/muPlusJetsTree_noBTag'
         mc_histFile = input_path + '/DYJetsToLL_M-50.root'
-        mc_input_file = File(mc_histFile)
-        mc_tree = mc_input_file.Get('rootTupleTreeMuPlusJets/muPlusJetsTree')
+        mc_input_file = mc_histFile
+        mc_tree = 'rootTupleTreeMuPlusJets/muPlusJetsTree_noBTag'
         mc_genparticles_collection = 'GenParticle'
         reco_leptons_collection = 'selectedPatMuonsLoosePFlow'
         if centre_of_mass == 7:
@@ -1210,35 +1288,49 @@ if __name__ == '__main__':
         else:
             trigger_object_lepton = 'TriggerObjectMuon2012Rho'
 
-    print 'Number of events in data tree: ', data_tree.GetEntries(), ' and MC tree: ', mc_tree.GetEntries()
-
     for mode in ['data', 'mc']:
+    # for mode in ['data']:
         nEvents = 0
         nEventsToConsider = 0
         nTagEvents = 0
         nProbeEvents = 0
         nPassingProbeEvents = 0
 
+        treeName=''
+        fileName=''
         if mode == 'data':
-            tree = data_tree
+            treeName = data_tree
+            fileName = data_input_file
         else:
-            tree = mc_tree
+            treeName = mc_tree
+            fileName = mc_input_file
 
+        chain = TChain(treeName)
+        chain.Add(fileName)
+
+        print 'Number of events in tree: ', chain.GetEntries()
+
+        setBranchStatuses( chain )
+        
         print 'Performing the tag and probe analysis on %s, %d TeV' % (mode, centre_of_mass)
-        for event in tree:
+        for event in chain:
             nEvents += 1
             run_number = event.__getattr__('Event.Run')
 
             if centre_of_mass == 7:
                 if channel == 'electron':
-                    if run_number >= 160404 and run_number <= 165633:
+                    if run_number == 1:
+                        trigger_object_lepton = 'TriggerObjectElectronIsoLeg'
+                    elif run_number >= 160404 and run_number <= 165633:
                         trigger_object_lepton = 'TriggerObjectElectronLeg'
                     elif run_number >= 165970 and run_number <= 178380:
                         trigger_object_lepton = 'TriggerObjectElectronIsoLeg'
                     elif run_number >= 178420 and run_number <= 180252:
                         trigger_object_lepton = 'TriggerObjectElectronIsoLeg'
                 elif channel == 'muon':
-                    if run_number >= 160404 and run_number <= 167913:
+                    if run_number == 1:
+                        trigger_object_lepton = 'TriggerObjectMuon2p1'
+                    elif run_number >= 160404 and run_number <= 167913:
                         trigger_object_lepton = 'TriggerObjectMuon1'
                     elif run_number >= 170249 and run_number <= 173198:
                         trigger_object_lepton = 'TriggerObjectMuon2'
@@ -1248,11 +1340,14 @@ if __name__ == '__main__':
                 if channel == 'electron':
                     trigger_object_lepton = 'TriggerObjectSingleElectron'
                 elif channel == 'muon':
-                    if run_number >= 190456 and run_number <= 193621:
+                    if run_number == 1:
+                        trigger_object_lepton = 'TriggerObjectMuon2012Rho'
+                    elif run_number >= 190456 and run_number <= 193621:
                         trigger_object_lepton = 'TriggerObjectMuon2012'
                     elif run_number >= 193834 and run_number <= 209151:
                         trigger_object_lepton = 'TriggerObjectMuon2012Rho'
-            
+
+
             reco_leptons, hlt_leptons, mc_leptons = read_lepton_collections( event, reco_leptons_collection,\
                         mc_genparticles_collection, trigger_object_lepton, mode, channel, doTrigger = options.doTrigger )
             do_tag_and_probe_analysis(reco_leptons, hlt_leptons, mc_leptons, mode, channel)
@@ -1263,11 +1358,14 @@ if __name__ == '__main__':
         print 'Number of events with a probe lepton :', nProbeEvents
         print 'Number of events with a passing probe lepton :', nPassingProbeEvents
 
-    
+    print 'Make z peak plots for data'
     make_Z_peak_plots('data', channel)
+    print 'Make z peak plots for mc'
     make_Z_peak_plots('mc', channel)
 
+    print 'Make 2D efficiency plots for data'
     make_2D_efficiency_plot(histograms_data['probe_passed_pt_eta'], histograms_data['probe_total_pt_eta'], 'data_efficiency_pt_eta_' + suffix, channel)
+    print 'Make 2D efficiency plots mc'
     make_2D_efficiency_plot(histograms_mc['probe_passed_pt_eta'], histograms_mc['probe_total_pt_eta'], 'mc_efficiency_pt_eta_' + suffix, channel)
 
     produce_pickle_files(histograms_data['probe_passed_pt_eta'], histograms_data['probe_total_pt_eta'], histograms_mc['probe_passed_pt_eta'], histograms_mc['probe_total_pt_eta'], channel)
