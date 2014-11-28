@@ -29,7 +29,7 @@ from tools.file_utilities import make_folder_if_not_exists
 from tools.hist_utilities import hist_to_value_error_tuplelist
 from tools.plotting import make_plot, Histogram_properties
 from ROOT import TLorentzVector, TGraphAsymmErrors, TF1, gPad, gStyle, TChain
-from ROOT import RooFit, RooDataHist, RooArgList, RooAddPdf, RooRealVar, RooBreitWigner, RooExponential, RooFFTConvPdf, RooCBShape, RooVoigtian
+from ROOT import RooFit, RooDataHist, RooArgList, RooAddPdf, RooRealVar, RooBreitWigner, RooExponential, RooFFTConvPdf, RooCBShape, RooVoigtian, RooEffProd, RooFormulaVar
 from ROOT import gROOT
 
 import numpy
@@ -603,12 +603,12 @@ def fit_Z_peak(histogram, save_as_name, channel, run_on = 'data'):
     # Fit Parameters for Breit-Wigner and exponential
     mean = RooRealVar("mean", "Mass", 91.0, 60.0, 120)
     bw_sigma = RooRealVar("bw_sigma", "Width", 2.0, 1., 5.0)
-    exp_lambda = RooRealVar("lambda", "slope", -0.01, -5., 0.)
+    exp_lambda = RooRealVar("lambda", "slope", -0.01, -100., 0.)
 
     cb_mean = RooRealVar("CB_mean", "CB_mean", 0., -10., 10.)
     cb_sigma = RooRealVar("CB_sigma", "CB_sigma", 5., 0., 50.)
-    cb_alpha = RooRealVar("CB_alpha", "CB_alpha", 1., -10.,50.)
-    cb_N = RooRealVar("CB_n", "CB_n", 5.,0.,50.)
+    cb_alpha = RooRealVar("CB_alpha", "CB_alpha", 1., -50.,50.)
+    cb_N = RooRealVar("CB_n", "CB_n", 5.,0.,100.)
 
     # Optional Crystal Ball
     # if use_CB_convolution:
@@ -624,9 +624,14 @@ def fit_Z_peak(histogram, save_as_name, channel, run_on = 'data'):
     #     pass
 
 
-    # Build signal and background PDFs
+    # Build signal PDF
     breit_wigner = RooBreitWigner("signal", "signal PDF", m_range, mean, bw_sigma)
+
+    # Background PDF
+    turnOn = RooFormulaVar("turnOn","0.5*(TMath::Erf((m_range-1)/0.5)+1)",RooArgList(m_range))
     background = RooExponential("background", "background PDF", m_range, exp_lambda)
+    background_turnOn = RooEffProd("modelEff","model with efficiency",background,turnOn) ;
+
 
     # Optional convolution of BW and CB
     # if use_CB_convolution:
@@ -644,7 +649,7 @@ def fit_Z_peak(histogram, save_as_name, channel, run_on = 'data'):
         print "Setting model to convolution"
         crystal_ball = RooCBShape("cryBall", "Crystal Ball resolution model", m_range, cb_mean, cb_sigma, cb_alpha, cb_N)
         bw_cb_convolution = RooFFTConvPdf("bwxCryBall", "Convoluted Crystal Ball and BW", m_range, breit_wigner, crystal_ball)
-        model = RooAddPdf("model", "s+b", RooArgList(bw_cb_convolution, background), RooArgList(n_sig, n_bkg))
+        model = RooAddPdf("model", "s+b", RooArgList(bw_cb_convolution, background_turnOn), RooArgList(n_sig, n_bkg))
     elif use_Voigtian:
         voigtian = RooVoigtian("voigtian","voigtian model", m_range, v_mean, v_sigma, v_width)
         model = RooAddPdf("model", "s+b", RooArgList(voigtian, background), RooArgList(n_sig, n_bkg))
@@ -1490,9 +1495,9 @@ if __name__ == '__main__':
         make_efficiency_plot(histograms_data['probe_passed_lepton_pt'], histograms_data['probe_total_lepton_pt'], histograms_mc['probe_passed_lepton_pt'], histograms_mc['probe_total_lepton_pt'], 'efficiency_pt_' + suffix, channel)
         make_efficiency_plot(histograms_data['probe_passed_lepton_eta'], histograms_data['probe_total_lepton_eta'], histograms_mc['probe_passed_lepton_eta'], histograms_mc['probe_total_lepton_eta'], 'efficiency_eta_'  + suffix, channel)
 
-        print 'Make other plots'
-        make_other_plots('data', channel)
-        make_other_plots('mc', channel)
+        # print 'Make other plots'
+        # make_other_plots('data', channel)
+        # make_other_plots('mc', channel)
 
 
 
