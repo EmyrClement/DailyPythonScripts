@@ -558,6 +558,8 @@ def produce_pickle_files(hist_passed_data, hist_total_data, hist_passed_mc, hist
 
             outputRootFile = root_open(output_folder + 'scaleFactors_'+ channel + '_' + suffix + '.root' , 'recreate')
             scale_factor_hist.Write()
+            data_efficiency.Write('data')
+            mc_efficiency.Write('mc')
             outputRootFile.Close()
 
             dictionary[eta_bin_range]['pt_' + str(lower_edge_pt) + '_' + str(upper_edge_pt)] = {}
@@ -649,7 +651,7 @@ def fit_Z_peak(histogram, save_as_name, channel, run_on = 'data'):
         print "Setting model to convolution"
         crystal_ball = RooCBShape("cryBall", "Crystal Ball resolution model", m_range, cb_mean, cb_sigma, cb_alpha, cb_N)
         bw_cb_convolution = RooFFTConvPdf("bwxCryBall", "Convoluted Crystal Ball and BW", m_range, breit_wigner, crystal_ball)
-        model = RooAddPdf("model", "s+b", RooArgList(bw_cb_convolution, background_turnOn), RooArgList(n_sig, n_bkg))
+        model = RooAddPdf("model", "s+b", RooArgList(bw_cb_convolution, background), RooArgList(n_sig, n_bkg))
     elif use_Voigtian:
         voigtian = RooVoigtian("voigtian","voigtian model", m_range, v_mean, v_sigma, v_width)
         model = RooAddPdf("model", "s+b", RooArgList(voigtian, background), RooArgList(n_sig, n_bkg))

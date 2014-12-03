@@ -4,6 +4,7 @@ from ROOT import TGraphAsymmErrors, TF1
 from tools.ROOT_utililities import set_root_defaults
 from tools.file_utilities import make_folder_if_not_exists
 import rootpy.plotting.root2matplotlib as rplt
+from rootpy.io import root_open
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FormatStrFormatter
 from rootpy.io import File
@@ -147,6 +148,11 @@ def produce_pickle_file(hist_passed_data, hist_total_data, file_name):
     
     data_efficiency = Efficiency(hist_passed_data, hist_total_data)
 
+    outputRootFile = root_open(output_folder + 'hadronLegEfficiencies_electron.root' , 'recreate')
+    histogramLabel = file_name.split('_')[-1].split('.')[0]
+    data_efficiency.Write(histogramLabel)
+    outputRootFile.Close()
+
     for i in range( number_of_pt_bin_edges - 1 ):
         lower_edge_pt = jet_pt_bins[i]
         upper_edge_pt = jet_pt_bins[i+1]
@@ -270,4 +276,15 @@ if __name__ == '__main__':
     make_single_efficiency_plot(histograms_3rd['reco_4th_jet_pt_passed'], histograms_3rd['reco_4th_jet_pt_total'], 'efficiency_4th_jet_pt_3rd', channel)
     make_single_efficiency_plot(histograms_3rd['reco_4th_jet_eta_passed'], histograms_3rd['reco_4th_jet_eta_total'], 'efficiency_4th_jet_eta_3rd', channel)
     produce_pickle_file(histograms_3rd['reco_4th_jet_pt_passed'], histograms_3rd['reco_4th_jet_pt_total'], output_pickle_folder + '/2011_had_leg_eff_3rd.pkl')
+
+
+    data_efficiency_1 = Efficiency(histograms_1st['reco_4th_jet_pt_passed'], histograms_1st['reco_4th_jet_pt_total'])
+    data_efficiency_2 = Efficiency(histograms_2nd['reco_4th_jet_pt_passed'], histograms_2nd['reco_4th_jet_pt_total'])
+    data_efficiency_3 = Efficiency(histograms_3rd['reco_4th_jet_pt_passed'], histograms_3rd['reco_4th_jet_pt_total'])
+
+    outputRootFile = root_open(output_folder + 'hadronLegEfficiencies_electron.root' , 'recreate')
+    data_efficiency_1.Write('data_1')
+    data_efficiency_2.Write('data_2')
+    data_efficiency_3.Write('data_3')
+    outputRootFile.Close()
 
