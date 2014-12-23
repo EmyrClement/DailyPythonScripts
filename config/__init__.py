@@ -5,7 +5,7 @@ __all__ = [
 ]
 
 class XSectionConfig():
-    current_analysis_path = '/hdfs/TopQuarkGroup/results/histogramfiles/AN-14-071_4th_draft/'
+    current_analysis_path = '/hdfs/TopQuarkGroup/results/histogramfiles/AN-14-071_5th_draft/'
     known_centre_of_mass_energies = [7, 8]
     # has to be separate as many variables depend on it
     luminosities = {7:5050, 8:19584}
@@ -58,7 +58,7 @@ class XSectionConfig():
 
     def __fill_defaults__( self ):
         self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/'
-        self.path_to_unfolding_histograms = self.path_to_files + 'unfolding/'
+        self.path_to_unfolding_histograms = self.path_to_files + 'unfolding_new/'
         path_to_files = self.path_to_files
         path_to_unfolding_histograms = self.path_to_unfolding_histograms
 
