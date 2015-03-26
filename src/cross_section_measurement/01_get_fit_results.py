@@ -102,6 +102,7 @@ def get_histograms( channel, input_files, variable, met_type, variable_bin,
     histograms['QCD'] = get_data_derived_qcd(histograms_control_inclusive, histograms_exclusive['QCD'])
     histograms['V+Jets'] = get_inclusive_histogram( histograms_inclusive['V+Jets'], histograms['V+Jets'] )
     
+    print histograms
     # normalise histograms
     if not measurement_config.luminosity_scale == 1.0:
         for sample, histogram in histograms.iteritems():
@@ -181,6 +182,7 @@ def get_fitted_normalisation_from_ROOT( channel, input_files, variable, met_type
                         }
             h_data = histograms['data']
 
+            print mc_histograms,h_data
             # if options.closure_test:
             #     ct_type = options.closure_test_type
             #     ct_norm = closure_tests[ct_type]
@@ -270,7 +272,8 @@ def get_fitted_normalisation_from_ROOT( channel, input_files, variable, met_type
                     templates[fit_variable][sample].append( fit_data_collection.vectors( fit_variable )[sample] )
 
     # print results
-    print "results = ", results
+    # print "results = ", results
+    # print 'templates = ',templates
     return results, initial_values, templates
 
 def write_fit_results_and_initial_values( channel, category, fit_results, initial_values, templates ):
@@ -333,7 +336,7 @@ if __name__ == '__main__':
     parser.add_option( '--closure_test_type', dest = "closure_test_type", default = 'simple',
                       help = "Type of closure test (relative normalisation):" + '|'.join( closure_tests.keys() ) )
     parser.add_option( '--no_combined_signal', dest = "make_combined_signal", 
-                       action = "store_false", default=True,
+                       action = "store_false", default=False,
                        help = "Do not make a combined template from TTbar and single top" )
     parser.add_option( '--test', dest = "test", action = "store_true",
                       help = "Just run the central measurement" )

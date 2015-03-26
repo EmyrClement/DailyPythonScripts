@@ -339,15 +339,15 @@ class XSectionConfig():
         self.k_values_electron = {
                    'MET' : 3,
                    'HT' : 3,
-                   'ST' : 4,
+                   'ST' : 2,
                    'MT' : 2,
-                   'WPT' : 3
+                   'WPT' : 2
                    }
 
         self.k_values_muon = {
                    'MET' : 3,
-                   'HT' : 3,
-                   'ST' : 4,
+                   'HT' : 2,
+                   'ST' : 2,
                    'MT' : 2,
                    'WPT' : 3
                    }
