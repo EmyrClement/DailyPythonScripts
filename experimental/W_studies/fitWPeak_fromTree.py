@@ -19,7 +19,7 @@ RooMsgService.instance().setGlobalKillBelow(RooFit.WARNING)
 
 from copy import deepcopy
 
-inputFileName = '/storage/ec6821/AnalysisTools/CMSSW_7_4_0_pre7/src/atOutput/tree_TTJet_5000pb_PFElectron_PFMuon_PF2PATJets_MET.root'
+inputFileName = '/storage/ec6821/AnalysisTools/CMSSW_7_4_0_pre7/src/atOutput/pretendData_tree.root'
 
 channels = [ 'EPlusJets', 
 'MuPlusJets'
@@ -97,16 +97,6 @@ def fitHistogram( histToFit, channel, variable='', bin='' ) :
 	fitFunction.plotOn(frame, RooFit.Components(toPlot), RooFit.LineStyle(kDashed), RooFit.LineColor(kBlue))
 
 	fitFunction.paramOn(frame,RooFit.Layout(0.55, 0.9, 0.9)) ;
-
-
-	# Print values of mean and sigma (that now reflect fitted values and errors)
-	# mg.Print()
-	# sg.Print()
-	# CBmean.Print() 
-	# CBsigma.Print() 
-	# CBalpha.Print() 
-	# CBn.Print()
-	# fracGauss.Print()
 
 	# # Draw frame on a canvas
 	c = TCanvas("WMass","WMass",800,400) 
@@ -303,6 +293,8 @@ def fitWPeak():
 	with root_open(inputFileName, 'read') as inputFile:
 		for channel in channels :
 
+			print '------ ',channel,' ------'
+
 			inputTree = 'TTbar_plus_X_analysis/%s/Ref selection/W Bosons/W Bosons' % channel
 			tree = inputFile.Get(inputTree);
 			tree.SetBranchStatus("*", 0);
@@ -315,38 +307,36 @@ def fitWPeak():
 			# Loop over tree and get the distributions to fit
 			histToFit_fromFile = Hist(80,40,500)
 
-			# # Inclusive
-			print '--- Inclusive'
-			tree.Draw('mjj',hist=histToFit_fromFile)
-			fitHistogram( histToFit_fromFile, '%s' % channel )
+			# # # Inclusive
+			# print '--- Inclusive'
+			# tree.Draw('mjj',hist=histToFit_fromFile)
+			# fitHistogram( histToFit_fromFile, '%s' % channel )
 
-			# PU bins
-			print '--- PU Binned'
-			puBinnedHists, puBinned_mw = study1DVariable( tree, 'NPU', channel, puBins )
-			# Make summary plot
-			make1DSummaryPlot( puBinned_mw, puBins, channel, 'NPU' )
+			# # PU bins
+			# print '--- PU Binned'
+			# puBinnedHists, puBinned_mw = study1DVariable( tree, 'NPU', channel, puBins )
+			# # Make summary plot
+			# make1DSummaryPlot( puBinned_mw, puBins, channel, 'NPU' )
 
-			# Leading jet
-			print '--- Leading jet pt'
-			leadingJetPtBinned, leadingJetPtBinned_mw = study1DVariable( tree, 'max(jetPt[0],jetPt[1])', channel, ptBins, 'LeadingJetPt' )
-			# Make summary plot
-			make1DSummaryPlot( leadingJetPtBinned_mw, ptBins, channel, 'LeadingJetPt' )
-			print '--- Leading jet eta'
-			# leadingJetEtaBinned, leadingJetEtaBinned_mw = study1DVariable( tree, '( (max(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (max(jetPt[0],jetPt[1]) == jetPt[1]) * float(jetEta[1]) )', channel, etaBins, 'LeadingJetEta' )
-			leadingJetEtaBinned, leadingJetEtaBinned_mw = study1DVariable( tree, 'jetEta[0]', channel, etaBins, 'LeadingJetEta' )
-			# Make summary plot
-			make1DSummaryPlot( leadingJetEtaBinned_mw, etaBins, channel, 'LeadingJetEta' )
+			# # Leading jet
+			# # print '--- Leading jet pt'
+			# # leadingJetPtBinned, leadingJetPtBinned_mw = study1DVariable( tree, 'max(jetPt[0],jetPt[1])', channel, ptBins, 'LeadingJetPt' )
+			# # # Make summary plot
+			# # make1DSummaryPlot( leadingJetPtBinned_mw, ptBins, channel, 'LeadingJetPt' )
+			# print '--- Leading jet eta'
+			# leadingJetEtaBinned, leadingJetEtaBinned_mw = study1DVariable( tree, '( (max(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (max(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'LeadingJetEta' )
+			# # Make summary plot
+			# make1DSummaryPlot( leadingJetEtaBinned_mw, etaBins, channel, 'LeadingJetEta' )
 
-
-			# Sub leading jet
-			print '--- Sub Leading jet pt'
-			subleadingJetPtBinned, subleadingJetPtBinned_mw = study1DVariable( tree, 'min(jetPt[0],jetPt[1])', channel, ptBins, 'SubleadingJetPt' )
-			# Make summary plot
-			make1DSummaryPlot( subleadingJetPtBinned_mw, ptBins, channel, 'SubleadingJetPt' )
-			print '--- Sub leading jet eta'
-			subleadingJetEtaBinned, subleadingJetEtaBinned_mw = study1DVariable( tree, '( (min(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (min(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'SubeadingJetEta' )
-			# Make summary plot
-			make1DSummaryPlot( subleadingJetEtaBinned_mw, etaBins, channel, 'SubeadingJetEta' )
+			# # Sub leading jet
+			# # print '--- Sub Leading jet pt'
+			# # subleadingJetPtBinned, subleadingJetPtBinned_mw = study1DVariable( tree, 'min(jetPt[0],jetPt[1])', channel, ptBins, 'SubleadingJetPt' )
+			# # # Make summary plot
+			# # make1DSummaryPlot( subleadingJetPtBinned_mw, ptBins, channel, 'SubleadingJetPt' )
+			# print '--- Sub leading jet eta'
+			# subleadingJetEtaBinned, subleadingJetEtaBinned_mw = study1DVariable( tree, '( (min(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (min(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'SubeadingJetEta' )
+			# # Make summary plot
+			# make1DSummaryPlot( subleadingJetEtaBinned_mw, etaBins, channel, 'SubeadingJetEta' )
 
 			# # # # Eta Bins
 			# print '--- Eta Binned'
