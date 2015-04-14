@@ -5,8 +5,8 @@ __all__ = [
 ]
 
 class XSectionConfig():
-    current_analysis_path = '/storage/ec6821/AnalysisTools/CMSSW_7_4_0_pre7/src/atOutput/'
-    known_centre_of_mass_energies = [7, 8, 13]
+    current_analysis_path = '/hdfs/TopQuarkGroup/run2/atOutput/'
+    known_centre_of_mass_energies = [7,8,13]
     # has to be separate as many variables depend on it
     luminosities = {7:5050, 8:19584, 13:5000}
     parameters = ['SingleTop_category_templates', 'SingleTop_category_templates_trees', 'SingleTop_file',
