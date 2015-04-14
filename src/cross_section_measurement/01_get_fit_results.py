@@ -474,6 +474,7 @@ if __name__ == '__main__':
         if run_just_central and not category == 'central': 
             continue
 
+        print 'Doing category :',category
         # Will want to use central template for rate changing systematic
         categoryForTemplates = category
 
