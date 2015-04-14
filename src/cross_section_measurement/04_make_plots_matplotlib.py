@@ -582,21 +582,19 @@ if __name__ == '__main__':
     # # all MET uncertainties except JES as this is already included
     # met_uncertainties = [met_type + suffix for suffix in met_systematics_suffixes if not 'JetEn' in suffix and not 'JetRes' in suffix]
     # new_uncertainties = ['QCD_shape']
-    # rate_changing_systematics = [systematic + '+' for systematic in measurement_config.rate_changing_systematics.keys()]
-    # rate_changing_systematics.extend( [systematic + '-' for systematic in measurement_config.rate_changing_systematics.keys()] )
+    rate_changing_systematics = [systematic for systematic in measurement_config.rate_changing_systematics.keys()]
 
     all_measurements = deepcopy( categories )
     # all_measurements.extend( pdf_uncertainties )
     # all_measurements.extend( met_uncertainties )
     # all_measurements.extend( new_uncertainties )
-    # all_measurements.extend( rate_changing_systematics )
+    all_measurements.extend( rate_changing_systematics )
     for channel in ['electron', 'muon', 'combined']:
         for category in all_measurements:
-            if not category == 'central' : continue
             if not category == 'central' and not options.additional_plots:
                 continue
-            if variable == 'HT' and category in met_uncertainties:
-                continue
+            # if variable == 'HT' and category in met_uncertainties:
+            #     continue
             # setting up systematic MET for JES up/down samples for reading fit templates
             met_type = translate_options[options.metType]
             if category == 'JES_up':
