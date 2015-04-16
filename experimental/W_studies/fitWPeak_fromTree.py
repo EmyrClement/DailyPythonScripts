@@ -14,12 +14,13 @@ gROOT.SetBatch(1);
 from itertools import combinations_with_replacement
 from collections import OrderedDict
 import os.path
+from optparse import OptionParser
 
 RooMsgService.instance().setGlobalKillBelow(RooFit.WARNING)
 
 from copy import deepcopy
 
-inputFileName = '/storage/ec6821/AnalysisTools/CMSSW_7_4_0_pre7/src/atOutput/pretendData_tree.root'
+inputFileName = '/hdfs/TopQuarkGroup/run2/atOutput/13TeV/pretendData_tree.root'
 
 channels = [ 'EPlusJets', 
 'MuPlusJets'
@@ -50,7 +51,7 @@ ptBins = OrderedDict([
  				('100_inf' , [100,999999999]),
 ])
 
-def fitHistogram( histToFit, channel, variable='', bin='' ) :
+def fitHistogram( histToFit, channel, variable='', bin='', treeSuffix ='' ) :
 	# Declare variables x,mean,sigma with associated name, title, initial value and allowed range
 	x = RooRealVar("M(jj)","M(jj)",40,500)
 
@@ -106,9 +107,9 @@ def fitHistogram( histToFit, channel, variable='', bin='' ) :
 	gPad.Update()
 
 	if variable == '' and bin == '':
-		c.Print( '%s.pdf' % channel )
+		c.Print( 'plots/WStudies/%s%s.pdf' % ( channel, treeSuffix ) )
 	elif variable != '' and bin != '':
-		outputDir = '%s/%s' % (channel, variable)
+		outputDir = 'plots/WStudies/%s%s/%s' % (channel, treeSuffix, variable)
 		if not os.path.exists( outputDir ):
 			os.makedirs( outputDir )
 		c.Print( '%s/%s.pdf' % (outputDir, bin) )
@@ -116,7 +117,7 @@ def fitHistogram( histToFit, channel, variable='', bin='' ) :
 	# mg.Print()
 	return mg
 
-def study1DVariable( tree, variable, channel, bins, variableName = '' ):
+def study1DVariable( tree, variable, channel, bins, variableName = '', treeSuffix = '' ):
 	# Storage for histograms and fitted m(W)
 	binnedHists = {}
 	binned_mw = {}
@@ -140,7 +141,7 @@ def study1DVariable( tree, variable, channel, bins, variableName = '' ):
 		# Draw histgoram
 		tree.Draw('mjj', cut, hist=binnedHists[bin] )
 		# Perform fit and store fitted m(W)
-		binned_mw[bin] = fitHistogram( binnedHists[bin], channel, variableLabel, bin )
+		binned_mw[bin] = fitHistogram( binnedHists[bin], channel, variableLabel, bin, treeSuffix = treeSuffix )
 	# Return histograms and fitted m(W)
 	return binnedHists, binned_mw
 
@@ -185,7 +186,7 @@ def study2DVariable( tree, variable, channel, bins ):
 	# Return histograms and fitted m(W)
 	return binnedHists,binned_mw
 
-def make1DSummaryPlot( binned_mw, bins, channel, variable ) :
+def make1DSummaryPlot( binned_mw, bins, channel, variable, treeSuffix ) :
 	nBins = len(bins)
 
 	xValues, yValues = array('d'), array( 'd' )
@@ -217,12 +218,12 @@ def make1DSummaryPlot( binned_mw, bins, channel, variable ) :
 	gr.Draw( 'AP' )
 	c.Update()
 
-	outputDir = '%s/%s' % (channel, variable)
+	outputDir = 'plots/WStudies/%s%s/%s' % (channel, treeSuffix, variable)
 	c.Print( '%s/Summary.pdf' % outputDir )
 
 	# raw_input('...')
 
-def make2DSummaryPlot( binned_mw, bins, channel, variable ) :
+def make2DSummaryPlot( binned_mw, bins, channel, variable, treeSuffix ) :
 	nBins = len(bins)
 
 	xValues, yValues, zValues = array('d'), array( 'd' ), array( 'd' )
@@ -285,17 +286,23 @@ def make2DSummaryPlot( binned_mw, bins, channel, variable ) :
 	hist.Draw('COLZ TEXTE')
 	c.Update()
 
-	outputDir = '%s/%s' % (channel, variable)
+	outputDir = 'plots/WStudies/%s%s/%s' % (channel, treeSuffix, variable)
 	c.Print( '%s/Summary.pdf' % outputDir )
 	# raw_input('...')
 
-def fitWPeak():
+def fitWPeak( JESVar ):
 	with root_open(inputFileName, 'read') as inputFile:
 		for channel in channels :
 
 			print '------ ',channel,' ------'
 
-			inputTree = 'TTbar_plus_X_analysis/%s/Ref selection/W Bosons/W Bosons' % channel
+			treeSuffix = ''
+			if JESVar == 1 :
+				treeSuffix = '_JESUp'
+			elif JESVar == -1 :
+				treeSuffix = '_JESDown'
+
+			inputTree = 'TTbar_plus_X_analysis/%s/Ref selection/W Bosons/W Bosons%s' % ( channel, treeSuffix )
 			tree = inputFile.Get(inputTree);
 			tree.SetBranchStatus("*", 0);
 			# now enable the one we are interested in:
@@ -307,36 +314,36 @@ def fitWPeak():
 			# Loop over tree and get the distributions to fit
 			histToFit_fromFile = Hist(80,40,500)
 
-			# # # Inclusive
-			# print '--- Inclusive'
-			# tree.Draw('mjj',hist=histToFit_fromFile)
-			# fitHistogram( histToFit_fromFile, '%s' % channel )
+			# # Inclusive
+			print '--- Inclusive'
+			tree.Draw('mjj',hist=histToFit_fromFile)
+			fitHistogram( histToFit_fromFile, '%s' % channel, treeSuffix=treeSuffix )
 
-			# # PU bins
-			# print '--- PU Binned'
-			# puBinnedHists, puBinned_mw = study1DVariable( tree, 'NPU', channel, puBins )
-			# # Make summary plot
-			# make1DSummaryPlot( puBinned_mw, puBins, channel, 'NPU' )
+			# PU bins
+			print '--- PU Binned'
+			puBinnedHists, puBinned_mw = study1DVariable( tree, 'NPU', channel, puBins, treeSuffix=treeSuffix )
+			# Make summary plot
+			make1DSummaryPlot( puBinned_mw, puBins, channel, 'NPU', treeSuffix )
 
 			# # Leading jet
 			# # print '--- Leading jet pt'
 			# # leadingJetPtBinned, leadingJetPtBinned_mw = study1DVariable( tree, 'max(jetPt[0],jetPt[1])', channel, ptBins, 'LeadingJetPt' )
 			# # # Make summary plot
 			# # make1DSummaryPlot( leadingJetPtBinned_mw, ptBins, channel, 'LeadingJetPt' )
-			# print '--- Leading jet eta'
-			# leadingJetEtaBinned, leadingJetEtaBinned_mw = study1DVariable( tree, '( (max(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (max(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'LeadingJetEta' )
-			# # Make summary plot
-			# make1DSummaryPlot( leadingJetEtaBinned_mw, etaBins, channel, 'LeadingJetEta' )
+			print '--- Leading jet eta'
+			leadingJetEtaBinned, leadingJetEtaBinned_mw = study1DVariable( tree, '( (max(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (max(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'LeadingJetEta', treeSuffix=treeSuffix )
+			# Make summary plot
+			make1DSummaryPlot( leadingJetEtaBinned_mw, etaBins, channel, 'LeadingJetEta', treeSuffix )
 
 			# # Sub leading jet
 			# # print '--- Sub Leading jet pt'
 			# # subleadingJetPtBinned, subleadingJetPtBinned_mw = study1DVariable( tree, 'min(jetPt[0],jetPt[1])', channel, ptBins, 'SubleadingJetPt' )
 			# # # Make summary plot
 			# # make1DSummaryPlot( subleadingJetPtBinned_mw, ptBins, channel, 'SubleadingJetPt' )
-			# print '--- Sub leading jet eta'
-			# subleadingJetEtaBinned, subleadingJetEtaBinned_mw = study1DVariable( tree, '( (min(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (min(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'SubeadingJetEta' )
-			# # Make summary plot
-			# make1DSummaryPlot( subleadingJetEtaBinned_mw, etaBins, channel, 'SubeadingJetEta' )
+			print '--- Sub leading jet eta'
+			subleadingJetEtaBinned, subleadingJetEtaBinned_mw = study1DVariable( tree, '( (min(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (min(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'SubeadingJetEta', treeSuffix=treeSuffix )
+			# Make summary plot
+			make1DSummaryPlot( subleadingJetEtaBinned_mw, etaBins, channel, 'SubeadingJetEta', treeSuffix )
 
 			# # # # Eta Bins
 			# print '--- Eta Binned'
@@ -349,4 +356,9 @@ def fitWPeak():
 			# make2DSummaryPlot( ptBinned_mw, ptBins, channel, 'jetPt' )
 
 if __name__ == '__main__':
-    fitWPeak()
+
+    parser = OptionParser()
+    parser.add_option('-j', type='int', dest='JESVar', default = 0)
+    (options, _) = parser.parse_args()
+
+    fitWPeak( options.JESVar )
