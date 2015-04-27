@@ -20,7 +20,10 @@ RooMsgService.instance().setGlobalKillBelow(RooFit.WARNING)
 
 from copy import deepcopy
 
-inputFileName = '/hdfs/TopQuarkGroup/run2/atOutput/13TeV/pretendData_tree.root'
+inputFileName = {
+'data' :' /hdfs/TopQuarkGroup/run2/atOutput/13TeV/pretendData_tree.root',
+'allMC' : '/hdfs/TopQuarkGroup/run2/atOutput/13TeV/pretendData_tree.root'
+}
 
 channels = [ 'EPlusJets', 
 'MuPlusJets'
@@ -290,8 +293,10 @@ def make2DSummaryPlot( binned_mw, bins, channel, variable, treeSuffix ) :
 	c.Print( '%s/Summary.pdf' % outputDir )
 	# raw_input('...')
 
-def fitWPeak( JESVar ):
-	with root_open(inputFileName, 'read') as inputFile:
+def fitWPeak( sample = 'data', JESVar = 0, allPlots = False, useAlphaCorr=False ):
+	
+	fittedMass = { channel : -1 for channel in channels	}
+	with root_open(inputFileName[sample], 'read') as inputFile:
 		for channel in channels :
 
 			print '------ ',channel,' ------'
@@ -301,6 +306,9 @@ def fitWPeak( JESVar ):
 				treeSuffix = '_JESUp'
 			elif JESVar == -1 :
 				treeSuffix = '_JESDown'
+
+			if useAlphaCorr:
+				treeSuffix += '_alphaCorr'
 
 			inputTree = 'TTbar_plus_X_analysis/%s/Ref selection/W Bosons/W Bosons%s' % ( channel, treeSuffix )
 			tree = inputFile.Get(inputTree);
@@ -317,48 +325,92 @@ def fitWPeak( JESVar ):
 			# # Inclusive
 			print '--- Inclusive'
 			tree.Draw('mjj',hist=histToFit_fromFile)
-			fitHistogram( histToFit_fromFile, '%s' % channel, treeSuffix=treeSuffix )
+			fittedMass[channel] = fitHistogram( histToFit_fromFile, '%s' % channel, treeSuffix=treeSuffix )
 
-			# PU bins
-			print '--- PU Binned'
-			puBinnedHists, puBinned_mw = study1DVariable( tree, 'NPU', channel, puBins, treeSuffix=treeSuffix )
-			# Make summary plot
-			make1DSummaryPlot( puBinned_mw, puBins, channel, 'NPU', treeSuffix )
+			if allPlots:
+				# PU bins
+				print '--- PU Binned'
+				puBinnedHists, puBinned_mw = study1DVariable( tree, 'NPU', channel, puBins, treeSuffix=treeSuffix )
+				# Make summary plot
+				make1DSummaryPlot( puBinned_mw, puBins, channel, 'NPU', treeSuffix )
 
-			# # Leading jet
-			# # print '--- Leading jet pt'
-			# # leadingJetPtBinned, leadingJetPtBinned_mw = study1DVariable( tree, 'max(jetPt[0],jetPt[1])', channel, ptBins, 'LeadingJetPt' )
-			# # # Make summary plot
-			# # make1DSummaryPlot( leadingJetPtBinned_mw, ptBins, channel, 'LeadingJetPt' )
-			print '--- Leading jet eta'
-			leadingJetEtaBinned, leadingJetEtaBinned_mw = study1DVariable( tree, '( (max(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (max(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'LeadingJetEta', treeSuffix=treeSuffix )
-			# Make summary plot
-			make1DSummaryPlot( leadingJetEtaBinned_mw, etaBins, channel, 'LeadingJetEta', treeSuffix )
+				# # Leading jet
+				# # print '--- Leading jet pt'
+				# # leadingJetPtBinned, leadingJetPtBinned_mw = study1DVariable( tree, 'max(jetPt[0],jetPt[1])', channel, ptBins, 'LeadingJetPt' )
+				# # # Make summary plot
+				# # make1DSummaryPlot( leadingJetPtBinned_mw, ptBins, channel, 'LeadingJetPt' )
+				print '--- Leading jet eta'
+				leadingJetEtaBinned, leadingJetEtaBinned_mw = study1DVariable( tree, '( (max(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (max(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'LeadingJetEta', treeSuffix=treeSuffix )
+				# Make summary plot
+				make1DSummaryPlot( leadingJetEtaBinned_mw, etaBins, channel, 'LeadingJetEta', treeSuffix )
 
-			# # Sub leading jet
-			# # print '--- Sub Leading jet pt'
-			# # subleadingJetPtBinned, subleadingJetPtBinned_mw = study1DVariable( tree, 'min(jetPt[0],jetPt[1])', channel, ptBins, 'SubleadingJetPt' )
-			# # # Make summary plot
-			# # make1DSummaryPlot( subleadingJetPtBinned_mw, ptBins, channel, 'SubleadingJetPt' )
-			print '--- Sub leading jet eta'
-			subleadingJetEtaBinned, subleadingJetEtaBinned_mw = study1DVariable( tree, '( (min(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (min(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'SubeadingJetEta', treeSuffix=treeSuffix )
-			# Make summary plot
-			make1DSummaryPlot( subleadingJetEtaBinned_mw, etaBins, channel, 'SubeadingJetEta', treeSuffix )
+				# # Sub leading jet
+				# # print '--- Sub Leading jet pt'
+				# # subleadingJetPtBinned, subleadingJetPtBinned_mw = study1DVariable( tree, 'min(jetPt[0],jetPt[1])', channel, ptBins, 'SubleadingJetPt' )
+				# # # Make summary plot
+				# # make1DSummaryPlot( subleadingJetPtBinned_mw, ptBins, channel, 'SubleadingJetPt' )
+				print '--- Sub leading jet eta'
+				subleadingJetEtaBinned, subleadingJetEtaBinned_mw = study1DVariable( tree, '( (min(jetPt[0],jetPt[1]) == jetPt[0]) * jetEta[0] + (min(jetPt[0],jetPt[1]) == jetPt[1]) * jetEta[1] )', channel, etaBins, 'SubeadingJetEta', treeSuffix=treeSuffix )
+				# Make summary plot
+				make1DSummaryPlot( subleadingJetEtaBinned_mw, etaBins, channel, 'SubeadingJetEta', treeSuffix )
 
-			# # # # Eta Bins
-			# print '--- Eta Binned'
-			# etaBinnedHists, etaBinned_mw = study2DVariable( tree, 'jetEta', channel, etaBins )
-			# make2DSummaryPlot( etaBinned_mw, etaBins, channel, 'jetEta' )
+				# # # # Eta Bins
+				# print '--- Eta Binned'
+				# etaBinnedHists, etaBinned_mw = study2DVariable( tree, 'jetEta', channel, etaBins )
+				# make2DSummaryPlot( etaBinned_mw, etaBins, channel, 'jetEta' )
 
-			# # # Pt Bins
-			# print '--- Pt Binned'
-			# ptBinnedHists, ptBinned_mw = study2DVariable( tree, 'jetPt', channel, ptBins )
-			# make2DSummaryPlot( ptBinned_mw, ptBins, channel, 'jetPt' )
+				# # # Pt Bins
+				# print '--- Pt Binned'
+				# ptBinnedHists, ptBinned_mw = study2DVariable( tree, 'jetPt', channel, ptBins )
+				# make2DSummaryPlot( ptBinned_mw, ptBins, channel, 'jetPt' )
+	return fittedMass
+
+def getAlphaOnly():
+	print 'Fitting W'
+	dataResults = {}
+	dataResults['central'] = fitWPeak( sample = 'data', JESVar = 0 );
+	dataResults['JESUp'] = fitWPeak( sample = 'data', JESVar = 1 );
+	dataResults['JESDown'] = fitWPeak( sample = 'data', JESVar = -1 );
+	mcResults = {}
+	mcResults['central'] = fitWPeak( sample = 'allMC', JESVar = 0 );
+	mcResults['JESUp'] = fitWPeak( sample = 'allMC', JESVar = 1 );
+	mcResults['JESDown'] = fitWPeak( sample = 'allMC', JESVar = -1 );
+
+	alphaResults = { channel : {'data' : { 'central' : -1, 'JESUp' : -1, 'JESDown' : -1 },
+						'mc' : { 'central' : -1, 'JESUp' : -1, 'JESDown' : -1 } } for channel in channels }
+
+	for channel in channels:
+		# Correct to this W mass
+		referenceWMass = dataResults['central'][channel]
+		for results in ['data','mc']:
+			for variation in ['central','JESUp','JESDown']:
+				print 'Variation :',variation
+				result = None
+				if results is 'data' : 
+					print 'Correcting data'
+					result = dataResults
+				elif results is 'mc' :
+					print 'Correcting MC'
+					result = mcResults
+				print 'Reference W mass : ',referenceWMass.getVal(),'+/-', referenceWMass.getError()
+				print 'This W mass :',result[variation][channel].getVal(),'+/-', result[variation][channel].getError()
+				alpha = referenceWMass.getVal()/result[variation][channel].getVal()
+				print 'Alpha : ',alpha
+
+				alphaResults[channel][results][variation] = alpha
+
+	print alphaResults
 
 if __name__ == '__main__':
 
-    parser = OptionParser()
-    parser.add_option('-j', type='int', dest='JESVar', default = 0)
-    (options, _) = parser.parse_args()
+	parser = OptionParser()
+	parser.add_option('-a',dest='getAlphaOnly', action="store_true", default=False)
+	parser.add_option('-j', type='int', dest='JESVar', default = 0)
+	parser.add_option('-c',dest='useAlphaCorr',action='store_true',default=False)
+	parser.add_option('-s', dest='sample', default = 'data')
+	(options, _) = parser.parse_args()
 
-    fitWPeak( options.JESVar )
+	if options.getAlphaOnly:
+		getAlphaOnly()
+	else :
+	    fitWPeak( JESVar = options.JESVar, allPlots = True, useAlphaCorr=options.useAlphaCorr )
