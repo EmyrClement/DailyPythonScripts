@@ -10,6 +10,7 @@ from rootpy.plotting import Hist
 from rootpy.tree import Tree
 from ROOT import TH1D, TH2F, gROOT, TGraphErrors, TGraph2DErrors, TGraph2D
 from array import array
+from math import sqrt
 gROOT.SetBatch(1);
 from itertools import combinations_with_replacement
 from collections import OrderedDict
@@ -21,8 +22,11 @@ RooMsgService.instance().setGlobalKillBelow(RooFit.WARNING)
 from copy import deepcopy
 
 inputFileName = {
-'data' :' /hdfs/TopQuarkGroup/run2/atOutput/13TeV/pretendData_tree.root',
-'allMC' : '/hdfs/TopQuarkGroup/run2/atOutput/13TeV/pretendData_tree.root'
+# 'data' :'/hdfs/TopQuarkGroup/run2/atOutput/13TeV/pretendData_tree.root',
+# 'allMC' : '/hdfs/TopQuarkGroup/run2/atOutput/13TeV/pretendData_tree.root'
+
+'data' :'/storage/ec6821/AnalysisTools/CMSSW_7_4_0_pre7/src/atOutput/13TeV/pretendData_tree.root',
+'allMC' : '/storage/ec6821/AnalysisTools/CMSSW_7_4_0_pre7/src/atOutput/13TeV/pretendData_tree.root'
 }
 
 channels = [ 'EPlusJets', 
@@ -395,7 +399,10 @@ def getAlphaOnly():
 				print 'Reference W mass : ',referenceWMass.getVal(),'+/-', referenceWMass.getError()
 				print 'This W mass :',result[variation][channel].getVal(),'+/-', result[variation][channel].getError()
 				alpha = referenceWMass.getVal()/result[variation][channel].getVal()
+				alphaErr = alpha * sqrt( ( referenceWMass.getError() / ( referenceWMass.getVal() ) ) ** 2 + ( result[variation][channel].getError() / ( result[variation][channel].getVal() ) ) ** 2 )
 				print 'Alpha : ',alpha
+				print 'Alpha error : ',alphaErr
+				print 'Relative alpha error : ',alphaErr/alpha*100
 
 				alphaResults[channel][results][variation] = alpha
 
@@ -413,4 +420,4 @@ if __name__ == '__main__':
 	if options.getAlphaOnly:
 		getAlphaOnly()
 	else :
-	    fitWPeak( JESVar = options.JESVar, allPlots = True, useAlphaCorr=options.useAlphaCorr )
+	    fitWPeak( JESVar = options.JESVar, allPlots = False, useAlphaCorr=options.useAlphaCorr )
