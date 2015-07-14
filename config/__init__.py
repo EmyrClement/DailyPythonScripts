@@ -471,7 +471,8 @@ class XSectionConfig():
         middle = self.middle
         path_to_files = self.path_to_files
 
-        self.new_luminosity = 1000  # pb^-1
+        # self.new_luminosity = 10.933  # pb^-1
+        self.new_luminosity = 13.256  # pb^-1
         self.ttbar_xsection = 831.76  # pb
 
         self.rate_changing_systematics = {
