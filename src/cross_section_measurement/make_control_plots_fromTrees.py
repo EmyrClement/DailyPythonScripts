@@ -9,6 +9,8 @@ make_control_region_comparison
 from tools.hist_utilities import prepare_histograms, clean_control_region, get_normalisation_error, get_fitted_normalisation
 from tools.ROOT_utils import get_histograms_from_trees, set_root_defaults
 from tools.latex import setup_matplotlib
+
+import ROOT as ROOT
 # latex, font, etc
 setup_matplotlib()
 
@@ -93,7 +95,7 @@ def make_plot( channel, x_axis_title, y_axis_title,
             normalisation = normalisations_electron[norm_variable]
         if use_qcd_data_region:
             qcd_data_region = 'QCDConversions'
-    if channel == 'muon':
+    elif channel == 'muon':
         histogram_files['data'] = measurement_config.data_file_muon_trees
         histogram_files['QCD'] = measurement_config.muon_QCD_MC_category_templates_trees[category]
         if normalise_to_fit:
@@ -102,35 +104,27 @@ def make_plot( channel, x_axis_title, y_axis_title,
             qcd_data_region = 'QCD non iso mu+jets ge3j'
 
     # Get all histograms
-    # multi = isinstance( signal_region, list )
-    # histograms = {}
-    # qcd_control_region = ''
-    # if multi:
-    #     signal_region_sum = signal_region[0].replace( '_bin_' + sum_bins[0], '' )
-    #     qcd_control_region_sum = signal_region_sum.replace( 'Ref selection', qcd_data_region )
-    #     qcd_control_region_sum = qcd_control_region_sum.replace( b_tag_bin, qcd_data_region_btag )
-    #     for region in signal_region:
-    #         qcd_control_region = region.replace( 'Ref selection', qcd_data_region )
-    #         qcd_control_region = qcd_control_region.replace( b_tag_bin, qcd_data_region_btag )
-    #         tmp_hists = get_histograms_from_files( [region, qcd_control_region], histogram_files )
-    #         for name in tmp_hists.keys():
-    #             if not histograms.has_key( name ):
-    #                 histograms[name] = {}
-    #                 histograms[name][signal_region_sum] = tmp_hists[name][region]
-    #                 histograms[name][qcd_control_region_sum] = tmp_hists[name][qcd_control_region]
-    #             else:
-    #                 histograms[name][signal_region_sum] += tmp_hists[name][region]
-    #                 histograms[name][qcd_control_region_sum] += tmp_hists[name][qcd_control_region]
-    #     signal_region = signal_region_sum
-    #     qcd_control_region = qcd_control_region_sum
-    # else:
-    #     qcd_control_region = signal_region.replace( 'Ref selection', qcd_data_region )
-    #     qcd_control_region = qcd_control_region.replace( b_tag_bin, qcd_data_region_btag )
-    #     if qcd_data_region:
-    #         histograms = get_histograms_from_files( [signal_region, qcd_control_region], histogram_files )
-    #     else:
-    #         histograms = get_histograms_from_files( [signal_region], histogram_files )
-    histograms = get_histograms_from_trees( trees = [signal_region_tree, control_region_tree], branch = branchName, weightBranch = 'EventWeight', files = histogram_files, nBins = nBins, xMin = x_limits[0], xMax = x_limits[-1] )
+    histograms = {}
+    if channel == 'combined':
+        histogram_files_electron = dict(histogram_files)
+        histogram_files_electron['data'] = measurement_config.data_file_electron_trees
+        histogram_files_electron['QCD'] = measurement_config.electron_QCD_MC_category_templates_trees[category]
+
+        histogram_files_muon = dict(histogram_files)
+        histogram_files_muon['data'] = measurement_config.data_file_muon_trees
+        histogram_files_muon['QCD'] = measurement_config.muon_QCD_MC_category_templates_trees[category]
+
+        histograms_electron = get_histograms_from_trees( trees = [signal_region_tree.replace('COMBINED','EPlusJets')], branch = branchName, weightBranch = 'EventWeight', files = histogram_files_electron, nBins = nBins, xMin = x_limits[0], xMax = x_limits[-1] )
+
+        histograms_muon = get_histograms_from_trees( trees = [signal_region_tree.replace('COMBINED','MuPlusJets')], branch = branchName, weightBranch = 'EventWeight', files = histogram_files_muon, nBins = nBins, xMin = x_limits[0], xMax = x_limits[-1] )
+
+        for sample in histograms_electron:
+            h_electron = histograms_electron[sample][signal_region_tree.replace('COMBINED','EPlusJets')]
+            h_muon = histograms_muon[sample][signal_region_tree.replace('COMBINED','MuPlusJets')]
+            h_combined = h_electron + h_muon
+            histograms[sample] = { signal_region_tree : histograms_electron[sample][signal_region_tree.replace('COMBINED','EPlusJets')] + histograms_muon[sample][signal_region_tree.replace('COMBINED','MuPlusJets')]}
+    else :
+        histograms = get_histograms_from_trees( trees = [signal_region_tree, control_region_tree], branch = branchName, weightBranch = 'EventWeight', files = histogram_files, nBins = nBins, xMin = x_limits[0], xMax = x_limits[-1] )
 
     # Split histograms up into signal/control (?)
     signal_region_hists = {}
@@ -177,7 +171,7 @@ def make_plot( channel, x_axis_title, y_axis_title,
                           signal_region_hists['SingleTop'],
                           signal_region_hists['TTJet']]
     histogram_lables = ['data', 'QCD', 'V+Jets', 'Single-Top', samples_latex['TTJet']]
-    histogram_colors = ['black', 'yellow', 'green', 'magenta', 'red']
+    histogram_colors = ['black', 'yellow', ROOT.EColor.kGreen-3, ROOT.EColor.kMagenta, ROOT.EColor.kRed+1]
 
     # if channel == 'electron':
     histograms_to_draw.remove(qcd_from_data)
@@ -196,7 +190,7 @@ def make_plot( channel, x_axis_title, y_axis_title,
     histogram_properties.y_max_scale = y_max_scale
     histogram_properties.xerr = None
     # workaround for rootpy issue #638
-    histogram_properties.emptybins = True
+    # histogram_properties.emptybins = False
     if b_tag_bin:
         histogram_properties.additional_text = channel_latex[channel] + ', ' + b_tag_bins_latex[b_tag_bin]
     else:
@@ -216,11 +210,13 @@ def make_plot( channel, x_axis_title, y_axis_title,
     #     histogram_properties.mc_error = mc_uncertainty
     #     histogram_properties.mc_errors_label = 'MC unc.'
 
-    # Actually draw histograms
-    make_data_mc_comparison_plot( histograms_to_draw, histogram_lables, histogram_colors,
-                                 histogram_properties, save_folder = output_folder,
-                                 show_ratio = False, normalise = normalise,
-                                 )
+    if normalise_to_data:
+        histogram_properties.name += '_normToData'
+    # # Actually draw histograms
+    # make_data_mc_comparison_plot( histograms_to_draw, histogram_lables, histogram_colors,
+    #                              histogram_properties, save_folder = output_folder,
+    #                              show_ratio = False, normalise = normalise,
+    #                              )
     histogram_properties.name += '_with_ratio'
     loc = histogram_properties.legend_location
     # adjust legend location as it is relative to canvas!
@@ -296,7 +292,6 @@ if __name__ == '__main__':
             # 'WPT':get_fitted_normalisation( 'WPT', 'muon', path_to_JSON, category, met_type )
             }
     title_template = '$%.1f$ pb$^{-1}$ (%d TeV)'
-    e_title = title_template % ( measurement_config.new_luminosity, measurement_config.centre_of_mass_energy )
     preliminary = True
     
     b_tag_bin = '2orMoreBtags'
@@ -305,17 +300,17 @@ if __name__ == '__main__':
     include_plots = [
                         'HT',
                         'MET',
-                        'ST',
-                        'WPT',
-                        'Mjj',
-                        'M3',
-                        'angle_bl',
-                        'NJets',
-                        'NBJets',
-                        'JetPt',
-                        'NVertex',
-                        'LeptonPt',
-                        'LeptonEta'
+                        # 'ST',
+                        # 'WPT',
+                        # 'Mjj',
+                        # 'M3',
+                        # 'angle_bl',
+                        # 'NJets',
+                        # 'NBJets',
+                        # 'JetPt',
+                        # 'NVertex',
+                        # 'LeptonPt',
+                        # 'LeptonEta'
                         ]
     additional_qcd_plots = [
                             ]
@@ -324,9 +319,11 @@ if __name__ == '__main__':
 
 
     for channel, label in {
-                            'electron' : 'EPlusJets', 
-                            'muon' : 'MuPlusJets'
+                            'electron' : 'EPlusJets',
+                            'muon' : 'MuPlusJets',
+                            'combined' : 'COMBINED'
                             }.iteritems() :
+        print channel,label
         # Set folder for this batch of plots
         output_folder = output_folder_base + "/Variables/"
         make_folder_if_not_exists(output_folder)
@@ -339,7 +336,7 @@ if __name__ == '__main__':
             print '---> HT'
             make_plot( channel,
                       x_axis_title = '$%s$ [GeV]' % variables_latex['HT'],
-                      y_axis_title = 'Events/(20 GeV)',
+                      y_axis_title = 'Events/(75 GeV)',
                       signal_region_tree = 'TTbar_plus_X_analysis/%s/Ref selection/FitVariables' % label,
                       control_region_tree = 'TTbar_plus_X_analysis/%s/Ref selection/FitVariables' % label,
                       branchName = 'HT',
