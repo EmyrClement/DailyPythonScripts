@@ -64,7 +64,8 @@ class XSectionConfig():
         self.__fill_defaults__()
 
     def __fill_defaults__( self ):
-        self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/50ns/'
+        # self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/50ns/'
+        self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/EPS/'
 
         self.path_to_unfolding_histograms = '/hdfs/TopQuarkGroup/run2/unfolding/' + str( self.centre_of_mass_energy ) + 'TeV/50ns/'
         path_to_files = self.path_to_files

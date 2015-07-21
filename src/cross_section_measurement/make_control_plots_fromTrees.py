@@ -291,7 +291,7 @@ if __name__ == '__main__':
             # 'MT':get_fitted_normalisation( 'MT', 'muon', path_to_JSON, category, met_type ),
             # 'WPT':get_fitted_normalisation( 'WPT', 'muon', path_to_JSON, category, met_type )
             }
-    title_template = '$%.1f$ pb$^{-1}$ (%d TeV)'
+    title_template = '$%.0f$ pb$^{-1}$ (%d TeV)'
     preliminary = True
     
     b_tag_bin = '2orMoreBtags'
