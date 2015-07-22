@@ -65,7 +65,7 @@ class XSectionConfig():
 
     def __fill_defaults__( self ):
         # self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/50ns/'
-        self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/EPS/'
+        self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/EPS_full/'
 
         self.path_to_unfolding_histograms = '/hdfs/TopQuarkGroup/run2/unfolding/' + str( self.centre_of_mass_energy ) + 'TeV/50ns/'
         path_to_files = self.path_to_files
@@ -461,7 +461,7 @@ class XSectionConfig():
         middle = self.middle
         path_to_files = self.path_to_files
 
-        self.new_luminosity = 5.59  # pb^-1
+        self.new_luminosity = 45  # pb^-1
         self.ttbar_xsection = 831.76  # pb
 
         self.rate_changing_systematics = {
