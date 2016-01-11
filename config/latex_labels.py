@@ -24,10 +24,10 @@ measurements_latex = {'unfolded': 'unfolded',
                         'MADGRAPH':  'Madgraph Pythia',
                         'MADGRAPH_ptreweight': 'Madgraph+$p_\mathrm{T}$ reweighting',
                         'MCATNLO': 'MC@NLO Herwig',
-                        'powheg_v1_pythia': 'Powheg (v1) Pythia6',
-                        'powheg_v2_pythia': 'Powheg (v2) Pythia6',
-                        'powheg_v1_herwig': 'Powheg (v1) Herwig',
-                        'powheg_v2_herwig': 'Powheg (v2) Herwig++',
+                        'powheg_v1_pythia': 'Powheg v1 Pythia6',
+                        'powheg_v2_pythia': 'Powheg v2 Pythia6',
+                        'powheg_v1_herwig': 'Powheg v1 Herwig',
+                        'powheg_v2_herwig': 'Powheg v2 Herwig',
                         'matchingdown':  'Matching down',
                         'matchingup':  'Matching up',
                         'scaledown':  '$Q^{2}$ down',
@@ -92,7 +92,7 @@ met_systematics_latex = {
 }
 
 samples_latex = {
-                 'data':'Data',
+                 'Data':'Data',
                  'QCD':'QCD',
                  'WJets':'W $\\rightarrow \ell\\nu$',
                  'ZJets':'Z/$\gamma^*$ + jets',
@@ -103,7 +103,7 @@ samples_latex = {
 
 fit_variables_latex = {
                        'absolute_eta' : r'lepton $|\eta|$',
-                       'M3' : r'$M_3$',
+                       'M3' : '\ensuremath{M_3}',
                        'M_bl' : r'$M(b,l)$',
                        'angle_bl' : r'$\alpha$',
                        }
