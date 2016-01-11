@@ -220,7 +220,7 @@ def make_data_mc_comparison_plot( histograms = [],
         stack_upper.Scale( 1 + mc_error )
         rplt.fill_between( stack_upper, 
                            stack_lower, axes, facecolor = '0.75', 
-                           alpha = 0.5, hatch = '/', 
+                           alpha = 0.5, 
                            zorder = len(histograms_) + 1 )
     if not mc_error > 0 and show_stat_errors_on_mc:
         stack_lower = sum( stack.GetHists() )
@@ -230,7 +230,7 @@ def make_data_mc_comparison_plot( histograms = [],
             stack_lower.SetBinContent( bin_i, stack_lower.GetBinContent( bin_i ) - mc_errors[bin_i - 1] )
             stack_upper.SetBinContent( bin_i, stack_upper.GetBinContent( bin_i ) + mc_errors[bin_i - 1] )
         rplt.fill_between( stack_upper, stack_lower, axes, facecolor = '0.75', 
-                           alpha = 0.5, hatch = '/', 
+                           alpha = 0.5, 
                            zorder = len(histograms_) + 1 )
 
     # a comment on zorder: the MC stack should be always at the very back (z = 1), 
@@ -244,14 +244,14 @@ def make_data_mc_comparison_plot( histograms = [],
     
     # put legend into the correct order (data is always first!)
     handles, labels = axes.get_legend_handles_labels()
-    data_label_index = labels.index( 'data' )
+    data_label_index = labels.index( 'Data' )
     data_handle = handles[data_label_index]
-    labels.remove( 'data' )
+    labels.remove( 'Data' )
     handles.remove( data_handle )
-    labels.insert( 0, 'data' )
+    labels.insert( 0, 'Data' )
     handles.insert( 0, data_handle )
     if mc_error > 0 or ( not mc_error > 0 and show_stat_errors_on_mc ):
-        p1 = Rectangle( ( 0, 0 ), 1, 1, fc = "0.75", alpha = 0.5, hatch = '/' )
+        p1 = Rectangle( ( 0, 0 ), 1, 1, fc = "0.75", alpha = 0.5,)
         handles.append( p1 )
         labels.append( histogram_properties.mc_errors_label )
 
@@ -267,13 +267,16 @@ def make_data_mc_comparison_plot( histograms = [],
 
     x_limits = histogram_properties.x_limits
     y_limits = histogram_properties.y_limits
-    if len( x_limits ) == 2:
-        axes.set_xlim( xmin = x_limits[0], xmax = x_limits[1] )
     if len( y_limits ) == 2:
         axes.set_ylim( ymin = y_limits[0], ymax = y_limits[1] )
     else:
         y_max = get_best_max_y(histograms_, x_limits=x_limits) * histogram_properties.y_max_scale
+        y_limits = [ 0, y_max ]
         axes.set_ylim( ymin = 0, ymax = y_max )
+
+    if len( x_limits ) == 2:
+        axes.set_xlim( xmin = x_limits[0], xmax = x_limits[1] )
+
     if histogram_properties.set_log_y:
         if not len( y_limits ) == 2:  # if not user set y-limits, set default
             axes.set_ylim( ymin = 1e-1 )
@@ -297,11 +300,11 @@ def make_data_mc_comparison_plot( histograms = [],
         if len( x_limits ) == 2:
             ax1.set_xlim( xmin = x_limits[0], xmax = x_limits[1] )
         if len( histogram_properties.ratio_y_limits ) == 2:
-            ax1.set_ylim( ymin = histogram_properties.ratio_y_limits[0],
-                      ymax = histogram_properties.ratio_y_limits[1] )
+            ax1.set_ylim( ymin = histogram_properties.ratio_y_limits[0]-0.02,
+                      ymax = histogram_properties.ratio_y_limits[1]+0.02 )
 
         # dynamic tick placement
-        adjust_ratio_ticks(ax1.yaxis, n_ticks = 3, y_limits = histogram_properties.y_limits)
+        adjust_ratio_ticks(ax1.yaxis, n_ticks = 3, y_limits = histogram_properties.ratio_y_limits)
 
     if CMS.tight_layout:
         plt.tight_layout()
@@ -669,14 +672,14 @@ def set_labels( plt, histogram_properties, show_x_label = True,
 
     # CMS text
     # note: fontweight/weight does not change anything as we use Latex text!!!
-    logo_location = (0.05, 0.98)
+    logo_location = (0.05, 0.97)
     prelim_location = (0.05, 0.92)
-    additional_location = (0.95, 0.98)
+    additional_location = (0.94, 0.98)
     loc = histogram_properties.cms_logo_location
     if loc == 'right':
-        logo_location = (0.95, 0.98)
+        logo_location = (0.95, 0.97)
         prelim_location = (0.95, 0.92)
-        additional_location = (0.95, 0.86)
+        additional_location = (0.75, 0.86)
         
     plt.text(logo_location[0], logo_location[1], r"\textbf{CMS}", 
              transform=axes.transAxes, fontsize=42,
@@ -745,17 +748,20 @@ def adjust_ratio_ticks( axis, n_ticks = 3, y_limits = None ):
     # dynamic tick placement
     ticks = axis.get_ticklocs()
     tick_min, tick_max = ticks[0], ticks[-1]
+
     # Check if these are outside of the y_limits.  Use those instead if so.
     if y_limits != None:
-        if tick_min < y_limits[0] and tick_max > y_limits[-1]:
-            tick_min = y_limits[0]
-            tick_max = y_limits[-1]
+        tick_min = y_limits[0]
+        tick_max = y_limits[-1]
 
     # limit to 3 ticks
     tick_distance = abs( tick_max - tick_min ) / ( n_ticks + 1 )
     includes_one = tick_max > 1 and tick_min < 1
     if includes_one:
-        axis.set_major_locator( FixedLocator( [round(tick_min + tick_distance/2,1), 1, round(tick_max - tick_distance/2,1)] ) )
+        if y_limits != None:
+            axis.set_major_locator( FixedLocator( [round(tick_min,1), 1, round(tick_max,1)] ) )
+        else :
+            axis.set_major_locator( FixedLocator( [round(tick_min + tick_distance/2,1), 1, round(tick_max - tick_distance/2,1)] ) )
     else:
         axis.set_major_locator( MultipleLocator( tick_distance ) )
         axis.set_minor_locator( MultipleLocator( tick_distance / 2 ) )
