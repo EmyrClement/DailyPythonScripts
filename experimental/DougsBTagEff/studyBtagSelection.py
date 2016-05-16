@@ -1,11 +1,7 @@
 
-import ROOT 
-# from ROOT import gROOT, gPad, gStyle, TChain, TFile, TTree, TMath, TH1, TH1F, TH2F, TCanvas, TPad, TAxis, TLegend, TLatex
-from ROOT import TFile, TChain, TGraph
-# from array import array
-# import math
+from ROOT import TFile, TChain, TH1F
+from collections import OrderedDict
 import os
-# ROOT.gROOT.SetBatch(True)
 
 # Prepare output TFile, and output directory
 # Returns a TFile
@@ -17,6 +13,8 @@ def prepareOutputFiles() :
 
 	return file
 
+# Prepare location of input files and trees
+# Returns a dictionary of 'channel name' : TChain for this channel
 def prepareInputFiles():
 	input_file = "/hdfs/TopQuarkGroup/run2/atOutput/13TeV/25ns/TTJets_PowhegPythia8_tree.root"
 
@@ -30,8 +28,10 @@ def prepareInputFiles():
 
 	setBranchStatus( [ E_Chain, Mu_Chain ] )
 
-	return E_Chain, Mu_Chain
+	return 	{ 'Electron' : E_Chain, 'Muon' : Mu_Chain }
 
+# Set the status of branches in the trees
+# Only turn on the branches you will be reading
 def setBranchStatus(chains):
 	for chain in chains:
 		chain.SetBranchStatus("*",0)
@@ -49,33 +49,28 @@ def setBranchStatus(chains):
 		chain.SetBranchStatus("MuonEfficiencyCorrection",1)
 def main():
 
-
+	# Open the output file
 	outputFile = prepareOutputFiles()
+	# Get the input trees/chains
+	channelsAndChains = prepareInputFiles()
 
-	E_Chain, Mu_Chain = prepareInputFiles()
-
-	channelsAndChains = { 'Electron' : E_Chain,
-							'Muon'   : Mu_Chain }
-
-
+	# Loop over the two channels
 	for channel, chain in channelsAndChains.iteritems():
 
 		print channel,'channel'
 
-		totalNumberOfEvents=0
-		numberOfEventsWithTwoMediumBTags = 0
+		eventCounter=0
 
-		eventCounters = {
-		'Total' : 0,
-		'2Medium' : 0
-		}
+		# Histogram to store the results
+		resultsHistogram = TH1F( 'results', 'results', 2, 0, 2)
 
+		# Loop over the events in this chain
 		for event in chain:
-			totalNumberOfEvents=totalNumberOfEvents+1
-			if totalNumberOfEvents==10000: print totalNumberOfEvents, "th Event"
-			if totalNumberOfEvents > 20000 : break
+			eventCounter=eventCounter+1
+			if eventCounter % 10000 == 0: print "Processing ",eventCounter, "th event"
+			if eventCounter > 100000 : break
 
-
+			# Counter for the number of medium b tagged jets in this event
 			numberOfMediumJets = 0
 
 			# Read variables for this event
@@ -95,33 +90,17 @@ def main():
 			# Loop over jets and count how many are b tagged
 			for JetIndex in range (0,int(NJets)):
 
+				# Only consider jets with pt > 25 GeV
 				if (pt[JetIndex] < 25): continue;
 
 				if isMedium[JetIndex] : numberOfMediumJets += 1
 
-			eventCounters['Total'] += 1
-			if numberOfMediumJets >= 2 : eventCounters['2Medium'] += 1
+			resultsHistogram.Fill( 'Total', 1 )
+			if numberOfMediumJets >= 2 : 
+				resultsHistogram.Fill( '2Medium', 1 )
 
-		resultsGraph = TGraph( len( eventCounters )+1 )
-		pointCounter = 1
-		for counter,number in eventCounters.iteritems():
-			print pointCounter, counter, number
-			resultsGraph.SetPoint(pointCounter, pointCounter, number)
-			resultsGraph.GetXaxis().SetBinLabel(pointCounter, counter)
-			pointCounter += 1
-
-		resultsGraph.Draw('AP')
-		raw_input()
-
-	# bQuarkJets_BTags_Hist.Write()
-
-	# # Easy access to .pngs 
-	# bQuarkJetCanvas = TCanvas("bQuarkJet","bQuarkJet", 0, 0, 800, 600)
-	# bQuarkJets_BTags_Hist.SetTitle("bQuarkJet BTag Efficiencies; pt; eta")
-	# bQuarkJets_BTags_Hist.Draw("colz text e")
-	# bQuarkJetCanvas.Update()
-	# bQuarkJetCanvas.SaveAs("plots/bQuarkJet_BTagEfficiency.png")
-
+		resultsHistogram.Draw()
+		raw_input('Press anything to continue...')
 
 
 if __name__ == '__main__':
