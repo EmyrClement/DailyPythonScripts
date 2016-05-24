@@ -108,10 +108,13 @@ def summarise_systematics( list_of_central_measurements, dictionary_of_systemati
         elif mass_systematic:
             list_of_systematics = [systematic[bin_i][0] for systematic in dictionary_of_systematics.values()]
             error_down, error_up = calculate_lower_and_upper_systematics( central_value, list_of_systematics, False )
+            print (list_of_systematics)
+            print ('Top systematic :',error_down,error_up)
             # Scale errors calculated using very different top masses
             error_down, error_up = scaleTopMassSystematicErrors( [error_down], [error_up] )
             error_down = error_down[0]
             error_up = error_up[0]
+            print ('After scaling :',error_down,error_up)
         elif kValueSystematic:
             list_of_systematics = [systematic[bin_i][0] for systematic in dictionary_of_systematics.values()]
             error_down, error_up = calculate_lower_and_upper_systematics( central_value, list_of_systematics, True )
@@ -126,12 +129,19 @@ def summarise_systematics( list_of_central_measurements, dictionary_of_systemati
 
 def scaleTopMassSystematicErrors( error_down, error_up ):
     error_down_new, error_up_new = [], []
+    print ('Original down :',error_down)
+    print ('Original up :',error_up)
+    print 'Scale down :', 1 / ( measurement_config.topMasses[1] - measurement_config.topMasses[0] )
+    print 'Scale up :', 1 / ( measurement_config.topMasses[2] - measurement_config.topMasses[1] )
     for down,up in zip( error_down,error_up ):
         upMassDifference = measurement_config.topMasses[2] - measurement_config.topMasses[1]
         downMassDifference = measurement_config.topMasses[1] - measurement_config.topMasses[0]
 
         error_down_new.append( down * measurement_config.topMassUncertainty / downMassDifference )
         error_up_new.append( up * measurement_config.topMassUncertainty / upMassDifference )
+    print ('New down :',error_down_new)
+    print ('New up :',error_up_new)
+
     return error_down_new, error_up_new
 
 def get_measurement_with_lower_and_upper_errors( list_of_central_measurements, lists_of_lower_systematic_errors, lists_of_upper_systematic_errors ):
@@ -244,7 +254,7 @@ if __name__ == "__main__":
     other_uncertainties_list.extend( rate_changing_systematics_list )
 
     for channel in ['electron', 'muon', 'combined']:
-#         print "channel = ", channel
+        print ('Channel :',channel)
         # read central measurement
         central_measurement, central_measurement_unfolded = read_normalised_xsection_measurement( 'central', channel )
         
@@ -269,8 +279,12 @@ if __name__ == "__main__":
         ttbar_hadronisation_min, ttbar_hadronisation_max = summarise_systematics( central_measurement, ttbar_hadronisation_systematic, hadronisation_systematic = True )
         ttbar_hadronisation_min_unfolded, ttbar_hadronisation_max_unfolded = summarise_systematics( central_measurement_unfolded, ttbar_hadronisation_systematic_unfolded, hadronisation_systematic = True )
         # Top mass systematic
+        print ('Measured')
         ttbar_mass_min, ttbar_mass_max = summarise_systematics( central_measurement, ttbar_mass_systematic, mass_systematic = True )
+        print ('Unfolded')
         ttbar_mass_min_unfolded, ttbar_mass_max_unfolded = summarise_systematics( central_measurement_unfolded, ttbar_mass_systematic_unfolded, mass_systematic = True )
+        print ('Min Unfolded :',ttbar_mass_min_unfolded)
+        print ('Max Unfolded :',ttbar_mass_max_unfolded)
         # k Value systematic
         kValue_min, kValue_max = summarise_systematics( central_measurement, kValue_systematic, kValueSystematic = True)
         kValue_min_unfolded, kValue_max_unfolded = summarise_systematics( central_measurement_unfolded, kValue_systematic_unfolded, kValueSystematic = True)
