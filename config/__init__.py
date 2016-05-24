@@ -194,7 +194,12 @@ class XSectionConfig():
                          }
         self.generator_systematics = [ 'matchingup', 'matchingdown', 'scaleup', 'scaledown' ]
         self.topMass_systematics = [ 'TTJets_massup', 'TTJets_massdown']
-        self.topMasses = [169.5, 172.5, 173.5]
+
+        if self.centre_of_mass_energy == 7:
+          self.topMasses = [166.5, 172.5, 178.5]
+        elif self.centre_of_mass_energy == 8:
+          self.topMasses = [169.5, 172.5, 173.5]
+        
         self.topMassUncertainty = 1.0 # GeV from https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO
         self.central_general_template = path_to_files + 'central/%s' + middle + '.root'
         self.generator_systematic_vjets_templates = { systematic: path_to_files + 'central/VJets-%s_%dpb_PFElectron_PFMuon_PF2PATJets_PFMET.root' % ( systematic, self.luminosity ) for systematic in self.generator_systematics}
@@ -245,6 +250,11 @@ class XSectionConfig():
         self.unfolding_mass_down = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_massdown_asymmetric.root' % self.centre_of_mass_energy
         self.unfolding_mass_up = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_massup_asymmetric.root' % self.centre_of_mass_energy
 
+        if self.centre_of_mass_energy == 7:
+          self.unfolding_mass_down = path_to_unfolding_histograms + 'unfolding_TTJets_8TeV_massdown_8To7_asymmetric.root'
+          self.unfolding_mass_up = path_to_unfolding_histograms + 'unfolding_TTJets_8TeV_massup_8To7_asymmetric.root'
+
+
         self.unfolding_pdfweights = {index : path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_pdfWeight_%d.root' % (self.centre_of_mass_energy, index) for index in range( 1, 46 )}
 
         self.histogram_path_templates = {
@@ -274,6 +284,23 @@ class XSectionConfig():
 
         self.luminosity_scale = self.new_luminosity / self.luminosity
         
+        self.typical_systematics_order = [
+              'typical_systematics_theoretical',
+              'typical_systematics_hadronisation',
+              'typical_systematics_PDF',
+              'typical_systematics_top_mass',
+              'typical_systematics_pt_reweight',
+              'typical_systematics_electron',
+              'typical_systematics_muon',
+              'typical_systematics_btagging',
+              'typical_systematics_JES',
+              'typical_systematics_JER',
+              'typical_systematics_MET',
+              'typical_systematics_PU',
+              'typical_systematics_background_other',
+              'typical_systematics_QCD_shape',
+        ]
+
         self.typical_systematics = {
                                       "typical_systematics_electron": ['Electron_down',
                                                           'Electron_up'],
