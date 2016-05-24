@@ -15,7 +15,7 @@ x_axis_title = {
               }
 
 y_axis_title = {
-              'fontsize':50,
+              'fontsize':40,
               'position' : (0., 1.),
               'verticalalignment': 'bottom',
               'horizontalalignment': 'right'
