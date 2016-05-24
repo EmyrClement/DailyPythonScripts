@@ -17,21 +17,30 @@ variables_latex = {
     'WPT': '\ensuremath{p^\mathrm{W}_{\mathrm{T}}}'
     }
 
+variables_latex_macros = {
+    'MET': '\met',
+    'HT': '\HT',
+    'ST': '\st',
+    'WPT': '\wpt'
+    }
+
 ttBarLatex = '$\mathrm{t}\\bar{\mathrm{t}}$'
 
 measurements_latex = {'unfolded': 'unfolded',
                         'measured': 'measured',
-                        'MADGRAPH':  'Madgraph Pythia',
-                        'MADGRAPH_ptreweight': 'Madgraph+$p_\mathrm{T}$ reweighting',
-                        'MCATNLO': 'MC@NLO Herwig',
-                        'powheg_v1_pythia': 'Powheg v1 Pythia6',
-                        'powheg_v2_pythia': 'Powheg v2 Pythia6',
-                        'powheg_v1_herwig': 'Powheg v1 Herwig',
-                        'powheg_v2_herwig': 'Powheg v2 Herwig',
+                        'MADGRAPH':  'Madgraph + Pythia',
+                        'MADGRAPH_ptreweight': 'Madgraph + $p_\mathrm{T}$ reweighting',
+                        'MCATNLO': 'MC@NLO + Herwig',
+                        'powheg_v1_pythia': 'Powheg v1 + Pythia6',
+                        'powheg_v2_pythia': 'Powheg v2 + Pythia6',
+                        'powheg_v1_herwig': 'Powheg v1 + Herwig',
+                        'powheg_v2_herwig': 'Powheg v2 + Herwig',
                         'matchingdown':  'Matching down',
                         'matchingup':  'Matching up',
-                        'scaledown':  '$Q^{2}$ down',
-                        'scaleup':  '$Q^{2}$ up',
+                        # 'scaledown':  '$Q^{2}$ down',
+                        # 'scaleup':  '$Q^{2}$ up',
+                        'scaledown':  '$\mu_{R}, \mu_{F}$ down',
+                        'scaleup':  '$\mu_{R}, \mu_{F}$ up',
                         'TTJets_matchingdown':  'Matching down',
                         'TTJets_matchingup':  'Matching up',
                         'TTJets_scaledown':  '$Q^{2}$ down',
@@ -110,18 +119,18 @@ fit_variables_latex = {
 
 typical_systematics_latex = {"typical_systematics_electron": "Electron trigger efficiency \& electron selection",
                       "typical_systematics_muon": "Muon trigger efficiency \& muon selection",
-                      "typical_systematics_btagging": "btagging",
-                      "typical_systematics_JES": "Jet Energy Scale",
-                      "typical_systematics_JER": "Jet Energy Resolution",
-                      "typical_systematics_PU": "pileup",
-                      "typical_systematics_hadronisation": "hadronisation",
+                      "typical_systematics_btagging": "b tagging",
+                      "typical_systematics_JES": "Jet energy scale",
+                      "typical_systematics_JER": "Jet energy resolution",
+                      "typical_systematics_PU": "Pileup",
+                      "typical_systematics_hadronisation": "Hadronization",
                       "typical_systematics_QCD_shape": "QCD shape",
-                      "typical_systematics_PDF": "PDF uncertainties",
-                      "typical_systematics_top_mass": "top mass",
-                      "typical_systematics_theoretical": "Theoretical systematics",
-                      'typical_systematics_background_other': 'Background (other)',
-                      'typical_systematics_MET': '$E_{T}^{miss}$ uncertainties',
-                      'typical_systematics_pt_reweight': '$p_\mathrm{T}$ reweighting'
+                      "typical_systematics_PDF": "PDF",
+                      "typical_systematics_top_mass": "Top quark mass",
+                      "typical_systematics_theoretical": "Fact./Renorm. scales and matching threshold",
+                      'typical_systematics_background_other': 'Background Normalization',
+                      'typical_systematics_MET': '\met',
+                      'typical_systematics_pt_reweight': 'Top quark $p_\mathrm{T}$ reweighting'
                       }
 
 channel_latex = {
