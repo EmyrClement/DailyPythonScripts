@@ -374,8 +374,8 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
         plt.xlabel( '$%s$ [GeV]' % variables_latex[variable], CMS.x_axis_title )
 
     axes.minorticks_on()
-    
-    plt.ylabel( r'$\frac{1}{\sigma}  \frac{d\sigma}{d' + variables_latex[variable] + '} \left[\mathrm{GeV}^{-1}\\right]$', CMS.y_axis_title )
+
+    plt.ylabel( r'$\displaystyle\frac{1}{\sigma}  \frac{d\sigma}{d' + variables_latex[variable] + '} \left[\mathrm{GeV}^{-1}\\right]$', CMS.y_axis_title )
     plt.tick_params( **CMS.axis_label_major )
     plt.tick_params( **CMS.axis_label_minor )
 
@@ -478,10 +478,12 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
             new_handles.append( handle )
             new_labels.append( label )
     
-    legend_location = (0.98, 0.88)
+    legend_location = (0.95, 0.88)
     if variable == 'MT':
         legend_location = (0.9, 0.6) # 0.98, 0.88
         CMS.legend_properties['size'] = 27
+    if variable == 'WPT' and measurement_config.centre_of_mass_energy == 8:
+        legend_location = (0.97, 0.9) # 0.98, 0.88
 #     elif variable == 'ST':
 #         legend_location = (0.95, 0.88)
     plt.legend( new_handles, new_labels, numpoints = 1, prop = CMS.legend_properties, frameon = False, bbox_to_anchor=legend_location,
@@ -491,10 +493,10 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
     plt.title( label,loc='right', **CMS.title )
     # CMS text
     # note: fontweight/weight does not change anything as we use Latex text!!!
-    plt.text(0.05, 0.98, r"\textbf{CMS}", transform=axes.transAxes, fontsize=42,
+    plt.text(0.05, 0.965, r"\textbf{CMS}", transform=axes.transAxes, fontsize=42,
         verticalalignment='top',horizontalalignment='left')
     # channel text     plt.text(0.95, 0.98
-    axes.text(0.95, 0.98, r"%s" %channel_label, transform=axes.transAxes, fontsize=42,
+    axes.text(0.95, 0.965, r"%s" %channel_label, transform=axes.transAxes, fontsize=42,
         verticalalignment='top',horizontalalignment='right')
 
     if show_ratio:
@@ -512,7 +514,7 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
         ax1.xaxis.labelpad = 20
         plt.tick_params( **CMS.axis_label_major )
         plt.tick_params( **CMS.axis_label_minor ) 
-        plt.ylabel( '$\\frac{\\mathrm{pred.}}{\\mathrm{data}}$', CMS.y_axis_title )
+        plt.ylabel( '$\\displaystyle\\frac{\\mathrm{pred.}}{\\mathrm{data}}$', CMS.y_axis_title )
         ax1.yaxis.set_label_coords(-0.115, 0.8)
         #draw a horizontal line at y=1 for data
         plt.axhline(y = 1, color = 'black', linewidth = 2)
@@ -570,7 +572,7 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
             if measurement_config.centre_of_mass_energy == 7:
                 ratioLegendLocation = 'lower center'
             elif measurement_config.centre_of_mass_energy == 8:
-                ratioLegendLocation = 'lower left'
+                ratioLegendLocation = 'lower center'
         elif variable == 'HT':
             ax1.set_ylim( ymin = 0.6, ymax = 1.4 )
             # ax1.yaxis.set_major_locator( MultipleLocator( 0.3 ) )
@@ -578,7 +580,7 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
             if measurement_config.centre_of_mass_energy == 7:
                 ratioLegendLocation = 'lower center'
             elif measurement_config.centre_of_mass_energy == 8:
-                ratioLegendLocation = 'upper left'
+                ratioLegendLocation = 'lower center'
         elif variable == 'WPT':
             ax1.set_ylim( ymin = 0.6, ymax = 1.4 )
             # ax1.yaxis.set_major_locator( MultipleLocator( 0.2 ) )
@@ -592,6 +594,9 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
         l1 = ax1.legend(handles = [p_stat, p_stat_and_syst], loc = ratioLegendLocation,
                      frameon = False, prop = {'size':26}, ncol = 2)
         ax1.add_artist(l1)
+
+    if variable == 'WPT' and measurement_config.centre_of_mass_energy == 8:
+        axes.set_ylim( axes.get_ylim()[0], axes.get_ylim()[1] * 1.12 )
 
     if CMS.tight_layout:
         plt.tight_layout()
