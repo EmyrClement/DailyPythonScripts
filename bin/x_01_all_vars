@@ -11,7 +11,7 @@ N_JOBS=6
 echo "Using the fit variable(s): $fit_var"
 
 i=0
-for var in MET HT ST WPT MT; do
+for var in MET HT ST WPT; do
 	echo "Fitting distribution: $var"
 	nohup time python src/cross_section_measurement/01_get_fit_results.py -V -v $var --no_combined_signal -c 7 --fit-variables $fit_var --disable-constraints &> logs/01_${var}_fit_7TeV_${nice_fit_var}.log &
 	let i+=1
