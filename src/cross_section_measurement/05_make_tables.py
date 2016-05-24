@@ -1,7 +1,7 @@
 from __future__ import division  # the result of the division will be always a float
 from optparse import OptionParser
 from copy import deepcopy
-from config.latex_labels import variables_latex, measurements_latex, met_systematics_latex, samples_latex, typical_systematics_latex
+from config.latex_labels import variables_latex, measurements_latex, met_systematics_latex, samples_latex, typical_systematics_latex, variables_latex_macros
 from config.variable_binning import variable_bins_latex, variable_bins_ROOT
 from config import XSectionConfig
 from tools.Calculation import getRelativeError
@@ -9,7 +9,7 @@ from tools.file_utilities import read_data_from_JSON, make_folder_if_not_exists
 from lib import read_normalisation, read_initial_normalisation
 import math
 import os.path
-from numpy import median
+import numpy as np
 
 def read_xsection_measurement_results_with_errors(channel):
     global path_to_JSON, variable, k_values, met_type
@@ -244,23 +244,28 @@ def print_xsections(xsections, channel, toFile = True, print_before_unfolding = 
     printout += '\n'
 
     printout += '\\begin{table}[htbp]\n'
-    printout += '\\setlength{\\tabcolsep}{2pt}\n'
+    printout += '\\setlength{\\tabcolsep}{8pt}\n'
     printout += '\\centering\n'
-    printout += '\\caption{Normalised \\ttbar cross section measurement with respect to \\%s variable\n' % variable
-    printout += 'at a centre-of-mass energy of %d TeV ' % measurement_config.centre_of_mass_energy
+    printout += '\\caption{Normalized \\ttbar differential cross section measurements with respect to the %s variable\n' % variables_latex_macros[variable]
+    printout += 'at a center-of-mass energy of %d TeV ' % measurement_config.centre_of_mass_energy
     if channel == 'combined':
         printout += '(combination of electron and muon channels).'
     else:
         printout += '(%s channel).' % channel
-    printout += ' The errors shown are combined statistical, fit and unfolding errors ($^\dagger$) and systematic uncertainty ($^\star$).}\n'
+
+    printout += ' The rightmost three columns show relative uncertainties on the measured values, in percent. The statistical and systematic errors are listed separately, and are combined in quadrature to give the overall relative uncertainty.}\n'
+
+    # printout += ' The first uncertainty is the statistical uncertainty, and the second is the systematic uncertainty. The overall relative uncertainty is also given in percent.}\n'
+    # printout += ' The first uncertainty is the statistical uncertainty, and the second is the systematic uncertainty. The overall uncertainty is also given.  All uncertainties are relative uncertainties in percent.}\n'
     printout += '\\label{tab:%s_xsections_%dTeV_%s}\n' % (variable, measurement_config.centre_of_mass_energy, channel)
     #printout += '\\resizebox{\\columnwidth}{!} {\n'
-    printout += '\\begin{tabular}{lrrrr}\n'
+    printout += '\\begin{tabular}{ccccc}\n'
     printout += '\\hline\n'
-    printout += '$%s$ bin [\\GeV] & \\multicolumn{4}{c}{$\sigma_{meas} \\left(\\times 10^{3}\\right)$}' % variables_latex[variable]
+    printout += '%s & $\sigma_{\mathrm{meas}}^{\mathrm{norm}}$ &  $\pm \\textrm{ stat.}$ & $\pm \\textrm{ syst.}$ & Relative \\\\ \n' % variables_latex_macros[variable]
+    # printout += '(\GeV) & \multicolumn{3}{c}{($\\times 10^3 \\,\\mathrm{GeV}^{-1}$)} & uncertainty (\%)'
+    printout += '(\GeV) & (\\mathrm{GeV}^{-1}$) & (\%) & (\%) & uncertainty (\%)'
     printout += '\\\\ \n\hline\n'
-    scale = 1000
-    
+
     bins = variable_bins_ROOT[variable]
     assert(len(bins) == len(xsections['unfolded_with_systematics']))
     
@@ -271,15 +276,45 @@ def print_xsections(xsections, channel, toFile = True, print_before_unfolding = 
         else:
             value, stat_error = xsections['unfolded'][bin_i]
             _, total_error_up, total_error_down = xsections['unfolded_with_systematics'][bin_i]
+
+
+
         # extracting the systematic error from the total in quadrature
-        syst_error_up = math.sqrt(total_error_up**2 - stat_error**2)
-        syst_error_down = math.sqrt(total_error_down**2 - stat_error**2)
+        # syst_error_up = math.sqrt(total_error_up**2 - stat_error**2)
+        # syst_error_down = math.sqrt(total_error_down**2 - stat_error**2)
+        syst_error_up = getRelativeError( value, math.sqrt(total_error_up**2 - stat_error**2) )
+        syst_error_down = getRelativeError( value, math.sqrt(total_error_down**2 - stat_error**2) )
+
+        stat_error = getRelativeError( value, stat_error )
+
         #relative errors for percentages
         total_relativeError_up = getRelativeError(value, total_error_up)
         total_relativeError_down = getRelativeError(value, total_error_down)
+
+        scale = 1000
+        exponent = 3
+        value *= scale
+        if value < 1:
+            value *= 10
+            exponent = 4
+
         if total_error_up == total_error_down:
-            printout += '%s & ' % variable_bins_latex[variable_bin] + ' $%.2f$ & $ \pm~ %.2f^\\dagger$ & $ \pm~ %.2f^\\star$ & ' % (value * scale, stat_error * scale, syst_error_up * scale) +\
-                    '$(%.2f' % (total_relativeError_up * 100) + '\%)$'
+            # relErrorToPrint = '%.3G' % (total_relativeError_up * 100)
+            # nMissingZeros = 3 - len( relErrorToPrint.replace('.','') )
+
+            # if not '.' in relErrorToPrint and len(relErrorToPrint) < 3: relErrorToPrint += '.'
+
+            # while len( relErrorToPrint.replace('.','') ) < 3 : relErrorToPrint += '0'
+            relErrorToPrint = '%.1f' % (total_relativeError_up * 100)
+
+            # printout += '%s & ' % variable_bins_latex[variable_bin] + ' $%.2f$ & $%.2f$ & $%.2f$ & ' % (value * scale, stat_error * scale, syst_error_up * scale) +\
+            #         '$%s' % (relErrorToPrint) + '$'
+            #         # '$%.f' % (total_relativeError_up) * 100) + '$'
+
+            printout += '%s & ' % variable_bins_latex[variable_bin] + ' $%.2f \\times 10^{-%i}$ & $%.1f$ & $%.1f$ & ' % (value, exponent, stat_error * 100, syst_error_up * 100) +\
+                    '$%s' % (relErrorToPrint) + '$'
+                    # '$%.f' % (total_relativeError_up) * 100) + '$'
+
         else:
             printout += '%s & ' % variable_bins_latex[variable_bin] + ' $%.2f$ & $ \pm~ %.2f^\\dagger$ & $ ~^{+%.2f}_{-%.2f}^\\star$ & ' % (value * scale, stat_error * scale, syst_error_up * scale, syst_error_down * scale) +\
                     '$(^{+%.2f}_{-%.2f}' % (total_relativeError_up * 100, total_relativeError_down * 100) + '\%)$'
@@ -418,13 +453,16 @@ def print_typical_systematics_table(central_values, errors, channel, toFile = Tr
     else:
         assert(len(bins) == len(central_values['unfolded']))
     
+    if variable == "HT":
+        typical_systematics_order.remove("typical_systematics_MET")
+
     for bin_i, variable_bin in enumerate(bins):
         if print_before_unfolding:
             central_value = central_values['measured'][bin_i][0]
         else:
             central_value = central_values['unfolded'][bin_i][0]
 
-        for systematic_group in typical_systematics.keys():
+        for systematic_group in typical_systematics_order:
             for source in all_measurements:
                 if source in typical_systematics[systematic_group]:
                     if met_type in source:
@@ -441,11 +479,10 @@ def print_typical_systematics_table(central_values, errors, channel, toFile = Tr
     
     rows_for_typical_systematics_table = {}
     
-    if variable == "HT":
-        del(typical_systematics["typical_systematics_MET"])
-    for systematic_group in typical_systematics.keys():
+    allErrors = []
+    for systematic_group in typical_systematics_order:
         typical_systematics_row = []
-        typical_systematics_row.append(typical_systematics_latex[systematic_group] + ' (\%)')
+        typical_systematics_row.append(typical_systematics_latex[systematic_group] )
         for bin_i, variable_bin in enumerate(bins):
             sum = 0.
             
@@ -475,10 +512,19 @@ def print_typical_systematics_table(central_values, errors, channel, toFile = Tr
             typical_systematics_row.append(sum)
         label = typical_systematics_row.pop(0)
         
-        #for each systematic group, take the median of the values across all bins 
-        value = median(typical_systematics_row)
-        text = '%.2f' % (value*100)
+        #for each systematic group, take the median of the values across all bins
+        allErrors.append( typical_systematics_row )
+        value = np.median(typical_systematics_row)
+        text = None
+        if value * 100 < 0.1 :
+            text = '$<0.1$'
+        else :
+            text = '%.1f' % (value*100)
         rows_for_typical_systematics_table[systematic_group] = [label, text]
+
+    allErrors2 = np.power( np.array(allErrors), 2)
+    sumAllErrors = np.sqrt( np.sum(allErrors2,axis=0) )
+    medianAllErrors = np.median( sumAllErrors )
 
     printout = '%% ' + '=' * 60
     printout += '\n'
@@ -490,8 +536,8 @@ def print_typical_systematics_table(central_values, errors, channel, toFile = Tr
 
     printout += '\\begin{table}[htbp]\n'
     printout += '\\centering\n'
-    printout += '\\caption{Typical systematic uncertainties in percent (median values) for the normalised \\ttbar\n'
-    printout += '\\differential cross section measurement at \ensuremath{\roots=%d\TeV} '
+    printout += '\\caption{Typical systematic uncertainties in percent (median values) in the normalized \\ttbar cross\n'
+    printout += 'section measurement at a center-of-mass energy of 8 TeV'
     if channel == 'combined':
         printout += '(combination of electron and muon channels). '
     else:
@@ -500,25 +546,27 @@ def print_typical_systematics_table(central_values, errors, channel, toFile = Tr
     
     printout += '\\label{tab:typical_systematics_%dTeV_%s}\n' % (measurement_config.centre_of_mass_energy, channel)
     printout += '\\resizebox{\\columnwidth}{!} {\n'
-    printout += '\\begin{tabular}{l' + 'r'*len(variable_bins_ROOT) + '}\n'
+    printout += '\\tiny\n'
+    printout += '\\begin{tabular}{c' + 'c'*len(variable_bins_ROOT) + '}\n'
     printout += '\\hline\n'
-    
+    printout += ' & \\multicolumn{4}{c}{Relative uncertainty (\\%) } \\\\\n'
     header = 'Uncertainty source '
-    header += '& %s' % (variables_latex[variable])
+    header += '& %s' % (variables_latex_macros[variable])
 
     header += ' '
     printout += header
     printout += '\n\\hline\n'
 
-    for systematic_group in sorted(rows_for_typical_systematics_table.keys()):
+    for systematic_group in typical_systematics_order:
         if systematic_group == 'central':
             continue
         for item in rows_for_typical_systematics_table[systematic_group]:
             printout += item + ' & '
         printout = printout.rstrip('& ')
-        printout += ' \n'
+        printout += '\n'
 
     printout += '\\hline \n'
+    printout += 'Total & %.1f \n' % (medianAllErrors*100)
     printout += '\\hline \n'
     printout += '\\end{tabular}\n'
     printout += '}\n'
@@ -537,9 +585,11 @@ def print_typical_systematics_table(central_values, errors, channel, toFile = Tr
                 lines = output_file.readlines()
                 for line_number, line in enumerate (lines):
                     if line.startswith("Uncertainty source"):
-                        lines[line_number] = lines[line_number].strip() + " & " + variables_latex[variable] + "\n"
-                    elif variable == "HT" and line.startswith("$E_{T}^{miss}$ uncertainties"):
+                        lines[line_number] = lines[line_number].strip() + " & " + variables_latex_macros[variable] + "\n"
+                    elif variable == "HT" and line.startswith(typical_systematics_latex["typical_systematics_MET"]):
                         lines[line_number] = lines[line_number].strip() + " & - \n"
+                    elif line.startswith("Total"):
+                        lines[line_number] = lines[line_number].strip() + " & %.1f \n" % (medianAllErrors*100)
                     else:
                         for table_entry in enumerate(typical_systematics_latex):
                             if line.startswith(typical_systematics_latex[table_entry[1]]):
@@ -579,6 +629,7 @@ if __name__ == '__main__':
     vjets_theory_systematic_prefix = measurement_config.vjets_theory_systematic_prefix
     met_systematics_suffixes = measurement_config.met_systematics_suffixes
     typical_systematics = measurement_config.typical_systematics
+    typical_systematics_order = measurement_config.typical_systematics_order
 
     variable = options.variable
     output_folder = options.output_folder
@@ -624,22 +675,23 @@ if __name__ == '__main__':
     all_measurements.extend(new_uncertainties)
     all_measurements.extend(rate_changing_systematics)
 
-    for channel in ['electron', 'muon', 'combined']:                        
+    # for channel in ['electron', 'muon', 'combined']:                        
+    for channel in ['combined']:                        
         normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, normalised_xsection_unfolded_errors = read_xsection_measurement_results_with_errors(channel)
 
         print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = False)
         print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = True)
 
         print_error_table(normalised_xsection_measured_unfolded, normalised_xsection_unfolded_errors, channel, toFile = True, print_before_unfolding = False)
-        print_error_table(normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, channel, toFile = True, print_before_unfolding = True)
+#         print_error_table(normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, channel, toFile = True, print_before_unfolding = True)
 
         if channel == 'combined':
             print_typical_systematics_table(normalised_xsection_measured_unfolded, normalised_xsection_unfolded_errors, channel, toFile = True, print_before_unfolding = False)
 #             print_typical_systematics_table(normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, channel, toFile = True, print_before_unfolding = True)
 
-        if not channel == 'combined':
-            fit_input = read_initial_normalisation(path_to_JSON, variable, 'central', channel, met_type)
-            fit_results = read_normalisation(path_to_JSON, variable, 'central', channel, met_type)
-            print_fit_results_table(fit_input, fit_results, channel, toFile = True)
+        # if not channel == 'combined':
+        #     fit_input = read_initial_normalisation(path_to_JSON, variable, 'central', channel, met_type)
+        #     fit_results = read_normalisation(path_to_JSON, variable, 'central', channel, met_type)
+        #     print_fit_results_table(fit_input, fit_results, channel, toFile = True)
 
     
