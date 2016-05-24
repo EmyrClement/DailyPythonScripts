@@ -8,6 +8,8 @@ from config.variable_binning import bin_edges
 
 from scaleFactors import *
 
+import sys
+
 class channel:
     def __init__(self, channelName, treeName, outputDirName):
         self.channelName = channelName
@@ -76,7 +78,8 @@ def copyEventFilterHist( inputFile, outputFile ):
 
 fileNames = {
              '8TeV' : {
-                    'central' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_central_8TeV.root',
+                    'central':'/storage/ec6821/NTupleProd/CMSSW_5_3_23/src/TTJets_8TeV_central.root',
+                    # 'central' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_central_8TeV.root',
                     'scaleup' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_scaleup_8TeV.root',
                     'scaledown' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_scaledown_8TeV.root',
                     'matchingup' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_matchingup_8TeV.root',
@@ -87,8 +90,16 @@ fileNames = {
                     # 'powhegherwig_new' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_powhegherwig_NEW_8TeV.root',
                     'powhegherwig_new' : '/storage/ec6821/NTupleProd/CMSSW_5_3_23/src/TTJets_nTuple_53X_mc.root',
                     'mcatnlo' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mcatnlo_8TeV.root',
-                   'massdown' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_169_5_8TeV.root',
-                   'massup' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_173_5_8TeV.root',
+                   # 'massdown' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_169_5_8TeV.root',
+                   # 'massup' : '/hdfs/TopQuarkGroup/mc/8TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_173_5_8TeV.root',
+
+                   # 'massdown' : '/storage/ec6821/DailyPythonScripts/legacy/CMSSW_7_4_7/src/DailyPythonScripts/TTJets_mass_169_5_0.root',
+                   # 'massup' : '/storage/ec6821/DailyPythonScripts/legacy/CMSSW_7_4_7/src/DailyPythonScripts/unfolding_TTJets_mass_173_5_8TeV.root',
+
+                    'massdown' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_169_5_8TeV.root',
+                    'massup' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_173_5_8TeV.root',
+
+
                 },
              '7TeV' : {
                        'central' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_central_7TeV.root',
@@ -96,8 +107,10 @@ fileNames = {
                        'scaleup' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_scaleup_7TeV.root',
                        'matchingdown' :'/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_matchingdown_7TeV.root',
                        'matchingup' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_matchingup_7TeV.root',
-                       'massdown' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_169_5_7TeV.root',
-                       'massup' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_173_5_7TeV.root',
+                       # 'massdown' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_169_5_7TeV.root',
+                       # 'massup' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_173_5_7TeV.root',
+                       'massdown' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_166_5_7TeV.root',
+                       'massup' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_mass_178_5_7TeV.root',
                        'powheg' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_powhegpythia_7TeV.root',
                        'powhegherwig' : '/hdfs/TopQuarkGroup/mc/7TeV/v11/NoSkimUnfolding/BLT/unfolding_TTJets_powhegherwig_7TeV.root',
                        }
@@ -119,8 +132,13 @@ def main():
     parser.add_option('-n', action='store_true', dest='donothing', default=False)
     parser.add_option('-e', action='store_true', dest='extraHists', default=False)
     parser.add_option('-f',action='store_true', dest='fineBinned', default=False)
+    parser.add_option('--eightToSeven', action='store_true', dest='eightToSeven', default=False)
 
     (options, _) = parser.parse_args()
+
+    if options.eightToSeven and not int(options.centreOfMassEnergy) == 8:
+        print "Error : Reweighting from 8 TeV to 7 TeV, but input sample is not 8 TeV"
+        sys.exit()
 
     # Input file name
     file_name = 'crap.root'
@@ -130,7 +148,7 @@ def main():
         file_name = fileNames['8TeV'][options.sample]
     else:
         print "Error: Unrecognised centre of mass energy."
-
+    print file_name
     # Output file name
     outputFileName = 'crap.root'
     outputFileDir = 'unfolding/'
@@ -142,11 +160,17 @@ def main():
     elif options.pdfWeight != 0:
         outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric_pdfWeight_%i.root' % ( energySuffix, options.pdfWeight )
     elif options.sample != 'central':
-        outputFileName = outputFileDir+'/unfolding_TTJets_%s_%s_asymmetric.root' % ( energySuffix, options.sample  )
+        if options.eightToSeven :
+            outputFileName = outputFileDir+'/unfolding_TTJets_%s_%s_8To7_asymmetric.root' % ( energySuffix, options.sample  )
+        else :
+            outputFileName = outputFileDir+'/unfolding_TTJets_%s_%s_asymmetric.root' % ( energySuffix, options.sample  )
     elif options.fineBinned:
         outputFileName = outputFileDir+'/unfolding_TTJets_%s.root' % ( energySuffix  )
     else:
-        outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric.root' % energySuffix
+        if options.eightToSeven :
+            outputFileName = outputFileDir+'/unfolding_TTJets_%s_8To7_asymmetric.root' % energySuffix
+        else :
+            outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric.root' % energySuffix
 
     with root_open( file_name, 'read' ) as f, root_open( outputFileName, 'recreate') as out:
         
@@ -177,6 +201,7 @@ def main():
                         
             for variable in bin_edges:
                 if options.debug and variable != 'HT' : continue
+                if variable == 'MT' : continue
                 
                 print '--->Doing variable :',variable
 
@@ -210,6 +235,10 @@ def main():
                     offlineWeight += ' * '+pdfWeight
                     genWeight += ' * '+pdfWeight
                     pass
+
+                if options.eightToSeven:
+                    genWeight += ' * ( unfolding.comWeight )'
+                    offlineWeight += ' * ( unfolding.comWeight )'
                                 
                 # Scale factors
                 # scaleFactor = getScaleFactor( options.centreOfMassEnergy, channel.channelName )
@@ -264,9 +293,9 @@ def main():
                     tree.Draw(genVariable,genWeight+'*'+genSelection,hist=truth)
                     tree.Draw(recoVariable,offlineWeight+'*'+offlineSelection,hist=measured)
                     tree.Draw(recoVariable,offlineWeight+'*'+fakeSelection,hist=fake)
-                    tree.Draw("@(unfolding.jetPt).size()",genWeight+'*'+genSelection,hist=nJets)
-                    tree.Draw('unfolding.jetPt',genWeight+'*'+genSelection,hist=jetPt)
-                    tree.Draw('unfolding.recoNJets',offlineSelection+'&&'+genSelection,hist=h_nJets)
+                    # tree.Draw("@(unfolding.jetPt).size()",genWeight+'*'+genSelection,hist=nJets)
+                    # tree.Draw('unfolding.jetPt',genWeight+'*'+genSelection,hist=jetPt)
+                    # tree.Draw('unfolding.recoNJets',offlineSelection+'&&'+genSelection,hist=h_nJets)
 
                     # 2D
                     tree.Draw(recoVariable+':'+genVariable,offlineWeight+'*'+offlineSelection,hist=response)
