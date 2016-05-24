@@ -173,6 +173,7 @@ def make_data_mc_comparison_plot( histograms = [],
     save_folder = check_save_folder(save_folder)
     # make copies in order not to mess with existing histograms
     histograms_ = deepcopy(histograms)     
+
     stack = HistStack()
     add_mc = stack.Add
     for index, histogram in enumerate( histograms_ ):
@@ -201,7 +202,10 @@ def make_data_mc_comparison_plot( histograms = [],
     plt.figure( figsize = CMS.figsize, dpi = CMS.dpi, facecolor = CMS.facecolor )
     if show_ratio:
         ratio = data.Clone( 'ratio' )
-        ratio.Divide( sum( stack.GetHists() ) )
+        mcHist = sum( stack.GetHists() )
+        for bin_i in range(1,mcHist.GetNbinsX()):
+            mcHist.SetBinError( bin_i, 0 )
+        ratio.Divide( mcHist )
         ratio.SetMarkerSize( 3 )
         gs = gridspec.GridSpec( 2, 1, height_ratios = [5, 1] ) 
         axes = plt.subplot( gs[0] )
@@ -213,7 +217,23 @@ def make_data_mc_comparison_plot( histograms = [],
         axes.set_ylim( ymin = 1e-2 )
     mc_error = histogram_properties.mc_error
 
-    if mc_error > 0:
+    if isinstance( mc_error, list ):
+        stack_lower = sum( stack.GetHists() )
+        stack_upper = stack_lower.Clone( 'upper' )
+
+        for bin_i in range( 1, stack_lower.GetNbinsX() ):
+            stack_lower.SetBinContent( bin_i, stack_lower.GetBinContent( bin_i ) - mc_error[bin_i - 1] )
+            stack_upper.SetBinContent( bin_i, stack_upper.GetBinContent( bin_i ) + mc_error[bin_i - 1] )
+        # stack_lower -= mc_error
+        # stack_upper += mc_error
+        # print 'Stack : ', list(stack.y())
+        # print 'Stack upper : ',list(stack_upper.y())
+        # print 'Stack lower : ',list(stack_lower.y())
+        rplt.fill_between( stack_upper, 
+                                   stack_lower, axes, facecolor = '0.75', 
+                                   alpha = 0.5, 
+                                   zorder = len(histograms_) + 1 )
+    elif mc_error > 0:
         stack_lower = sum( stack.GetHists() )
         stack_upper = stack_lower.Clone( 'upper' )
         stack_lower.Scale( 1 - mc_error )
@@ -272,14 +292,13 @@ def make_data_mc_comparison_plot( histograms = [],
     else:
         y_max = get_best_max_y(histograms_, x_limits=x_limits) * histogram_properties.y_max_scale
         y_limits = [ 0, y_max ]
-        axes.set_ylim( ymin = 0, ymax = y_max )
+        if histogram_properties.set_log_y:
+            y_limits = [ 0.1, y_max * 10 ]
+
+        axes.set_ylim( ymin = y_limits[0], ymax = y_limits[1] )
 
     if len( x_limits ) == 2:
         axes.set_xlim( xmin = x_limits[0], xmax = x_limits[1] )
-
-    if histogram_properties.set_log_y:
-        if not len( y_limits ) == 2:  # if not user set y-limits, set default
-            axes.set_ylim( ymin = 1e-1 )
 
     #draw a red vertical line if needed:
     if draw_vertical_line != 0:
@@ -302,13 +321,34 @@ def make_data_mc_comparison_plot( histograms = [],
         if len( histogram_properties.ratio_y_limits ) == 2:
             ax1.set_ylim( ymin = histogram_properties.ratio_y_limits[0]-0.02,
                       ymax = histogram_properties.ratio_y_limits[1]+0.02 )
+        ax1.xaxis.labelpad = round(ax1.xaxis.labelpad * 3,0)
 
         # dynamic tick placement
         adjust_ratio_ticks(ax1.yaxis, n_ticks = 3, y_limits = histogram_properties.ratio_y_limits)
 
+        if isinstance( mc_error, list ):
+            ratio_lower = ratio.Clone('lower')
+            ratio_upper = ratio.Clone('upper')
+            mc_hist = sum( stack.GetHists() )
+            for bin_i in range( 1, ratio_lower.GetNbinsX() ):
+                if ratio_lower.GetBinContent( bin_i ) != 0 :
+                    ratio_lower.SetBinContent( bin_i, 1 - mc_error[bin_i - 1] / mc_hist.GetBinContent( bin_i ) )
+                else :
+                    ratio_lower.SetBinContent(bin_i, 1)
+
+                if ratio_upper.GetBinContent( bin_i ) != 0 :
+                    ratio_upper.SetBinContent( bin_i, 1 + mc_error[bin_i - 1] / mc_hist.GetBinContent( bin_i ) )
+                else :
+                    ratio_upper.SetBinContent(bin_i, 1)
+
+            rplt.fill_between( ratio_upper, ratio_lower, axes, facecolor = '0.75', 
+                               alpha = 0.5, 
+                               # zorder = len(histograms_) + 1 
+                               )
+
     if CMS.tight_layout:
         plt.tight_layout()
-    
+
     for save in save_as:
         plt.savefig( save_folder + histogram_properties.name + '.' + save )
 
@@ -562,7 +602,7 @@ def make_plot( histogram, histogram_label, histogram_properties = Histogram_prop
 
     if CMS.tight_layout:
         plt.tight_layout()
-    
+
     for save in save_as:
         plt.savefig( save_folder + histogram_properties.name + '.' + save )
     plt.close()
@@ -668,16 +708,16 @@ def set_labels( plt, histogram_properties, show_x_label = True,
         
     if not axes:
         return
-    axes.xaxis.labelpad = 20
+    # axes.xaxis.labelpad = 20
 
     # CMS text
     # note: fontweight/weight does not change anything as we use Latex text!!!
-    logo_location = (0.05, 0.97)
+    logo_location = (0.05, 0.96)
     prelim_location = (0.05, 0.92)
     additional_location = (0.94, 0.98)
     loc = histogram_properties.cms_logo_location
     if loc == 'right':
-        logo_location = (0.95, 0.97)
+        logo_location = (0.95, 0.96)
         prelim_location = (0.95, 0.92)
         additional_location = (0.75, 0.86)
         
