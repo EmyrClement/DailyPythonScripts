@@ -14,13 +14,13 @@ for var in MET HT ST WPT; do
     	wait;
 	fi
 
-	# nohup time python src/cross_section_measurement/03_calculate_systematics.py  -s -v $var -c 8 -p data/normalisation/background_subtraction/ &> logs/03b_${var}_calculate_8TeV.log &
-	# let i+=1
-	# if (( $i % N_JOBS == 0 ))
-	# then
-	# 	echo "Waiting on the above to finish."
- #    	wait;
-	# fi
+	nohup time python src/cross_section_measurement/03_calculate_systematics.py  -s -v $var -c 8 -p data/normalisation/background_subtraction/ &> logs/03b_${var}_calculate_8TeV.log &
+	let i+=1
+	if (( $i % N_JOBS == 0 ))
+	then
+		echo "Waiting on the above to finish."
+    	wait;
+	fi
 done
 
 wait;

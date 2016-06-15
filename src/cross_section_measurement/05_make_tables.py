@@ -4,7 +4,7 @@ from copy import deepcopy
 from config.latex_labels import variables_latex, measurements_latex, met_systematics_latex, samples_latex, typical_systematics_latex, variables_latex_macros
 from config.variable_binning import variable_bins_latex, variable_bins_ROOT
 from config import XSectionConfig
-from tools.Calculation import getRelativeError
+from tools.Calculation import getRelativeError, calculate_covariance_of_systematics
 from tools.file_utilities import read_data_from_JSON, make_folder_if_not_exists
 from lib import read_normalisation, read_initial_normalisation
 import math
@@ -675,9 +675,56 @@ if __name__ == '__main__':
     all_measurements.extend(new_uncertainties)
     all_measurements.extend(rate_changing_systematics)
 
+    other_uncertainties_list = deepcopy( measurement_config.categories_and_prefixes.keys() )
+    other_uncertainties_list.extend( vjets_generator_systematics )
+    other_uncertainties_list.append( 'QCD_shape' )
+    other_uncertainties_list.extend( rate_changing_systematics )
+
     # for channel in ['electron', 'muon', 'combined']:                        
     for channel in ['combined']:                        
         normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, normalised_xsection_unfolded_errors = read_xsection_measurement_results_with_errors(channel)
+
+# ttbar_generator_systematics_list
+# ttbar_mass_systematics_list
+# hadronisation
+# ptreweight_max
+# met_uncertainties
+# PDF_total_upper, PDF_total_lower
+# other_uncertainties_list
+
+        other_syst_covariance = calculate_covariance_of_systematics(other_uncertainties_list, normalised_xsection_unfolded_errors)
+        hadronisation_syst_covariance = calculate_covariance_of_systematics(['hadronisation'], normalised_xsection_unfolded_errors)
+        ttbar_generator_covariance = calculate_covariance_of_systematics(ttbar_generator_systematics, normalised_xsection_unfolded_errors)
+        ttbar_mass_covariance = calculate_covariance_of_systematics(ttbar_mass_systematics, normalised_xsection_unfolded_errors)
+        ptreweight_covariance = calculate_covariance_of_systematics(['ptreweight_max','ptreweight_min'], normalised_xsection_unfolded_errors)
+        met_covariance = calculate_covariance_of_systematics(met_uncertainties, normalised_xsection_unfolded_errors)
+        pdf_covariance = calculate_covariance_of_systematics(['PDF_total_lower','PDF_total_upper'], normalised_xsection_unfolded_errors)
+
+        total_covariance = other_syst_covariance + hadronisation_syst_covariance + ttbar_generator_covariance + ttbar_mass_covariance + ptreweight_covariance + met_covariance + pdf_covariance
+
+        # syst_covariance = calculate_covariance_of_systematics(all_measurements, normalised_xsection_unfolded_errors)
+        # stat_covariance = np.loadtxt(path_to_JSON + '/' + variable + '/xsection_measurement_results/combined/central/covariance.txt',delimiter=',')
+
+        # full_covariance = stat_covariance + syst_covariance
+
+        xsec = normalised_xsection_measured_unfolded['unfolded_with_systematics']
+
+        print 'Total errors'
+        for i in range(0,total_covariance.shape[0]):
+            print np.sqrt(total_covariance[i,i]) / xsec[i][0] * 100
+
+        # print 'Total errors'
+        # for i in range(0,syst_covariance.shape[0]):
+        #     print np.sqrt(syst_covariance[i,i]) / xsec[i][0] * 100
+
+
+        # n = full_covariance.shape[0]
+        # for i in range(0,n):
+        #     print np.sqrt(full_covariance[i,i])/xsec[i][0] * 100
+
+        # print all_measurements
+        # for k in normalised_xsection_unfolded_errors.keys():
+        #     print k
 
         print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = False)
         print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = True)

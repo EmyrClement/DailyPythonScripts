@@ -229,10 +229,44 @@ def make_data_mc_comparison_plot( histograms = [],
         # print 'Stack : ', list(stack.y())
         # print 'Stack upper : ',list(stack_upper.y())
         # print 'Stack lower : ',list(stack_lower.y())
-        rplt.fill_between( stack_upper, 
-                                   stack_lower, axes, facecolor = '0.75', 
-                                   alpha = 0.5, 
-                                   zorder = len(histograms_) + 1 )
+
+# plt.fill(x,np.sin(x),color='blue',alpha=0.5)
+# plt.fill(x,np.sin(x),color='None',alpha=0.5,edgecolor='blue',hatch='/')
+
+        # rplt.fill_between( stack_upper, 
+        #                            stack_lower, axes,
+        #                            color = 'black', 
+        #                            # edgecolor='black',
+        #                            # hatch='//', 
+        #                            linewidth='0.0',
+        #                            # facecolor = '0.75', 
+        #                            # alpha = 0., 
+        #                            zorder = len(histograms_) + 1
+        #                             )
+
+        # rplt.fill_between( stack_upper, 
+        #                            stack_lower, axes,
+        #                            # color = 'black', 
+        #                            edgecolor='black',
+        #                            hatch='//',
+        #                            linewidth='0.0',
+        #                            # facecolor = '0.75', 
+        #                            # alpha = 1., 
+        #                            zorder = len(histograms_) + 1
+        #                             )
+    
+        rplt.fill_between( stack_upper, stack_lower, axes, 
+                # facecolor = '0.75',
+                                   color = 'black', 
+                                   edgecolor='black',
+                                   hatch='//', 
+                                   linewidth='0.0',
+                                   alpha = '0.0000001'
+                                   # facecolor = '0.75', 
+                                   # alpha = 0.5,  
+                               # alpha = 0.5, 
+                               # zorder = len(histograms_) + 1 
+                               )
     elif mc_error > 0:
         stack_lower = sum( stack.GetHists() )
         stack_upper = stack_lower.Clone( 'upper' )
@@ -249,6 +283,7 @@ def make_data_mc_comparison_plot( histograms = [],
         for bin_i in range( 1, stack_lower.GetNbinsX() ):
             stack_lower.SetBinContent( bin_i, stack_lower.GetBinContent( bin_i ) - mc_errors[bin_i - 1] )
             stack_upper.SetBinContent( bin_i, stack_upper.GetBinContent( bin_i ) + mc_errors[bin_i - 1] )
+
         rplt.fill_between( stack_upper, stack_lower, axes, facecolor = '0.75', 
                            alpha = 0.5, 
                            zorder = len(histograms_) + 1 )
@@ -271,7 +306,13 @@ def make_data_mc_comparison_plot( histograms = [],
     labels.insert( 0, 'Data' )
     handles.insert( 0, data_handle )
     if mc_error > 0 or ( not mc_error > 0 and show_stat_errors_on_mc ):
-        p1 = Rectangle( ( 0, 0 ), 1, 1, fc = "0.75", alpha = 0.5,)
+        p1 = Rectangle( ( 0, 0 ), 1, 1,
+                color = 'none', 
+               edgecolor='black',
+               hatch='//', 
+               linewidth='0.0', 
+            # fc = "0.75", alpha = 0.5,
+            )
         handles.append( p1 )
         labels.append( histogram_properties.mc_errors_label )
 
@@ -312,7 +353,9 @@ def make_data_mc_comparison_plot( histograms = [],
         # Add horizontal line at y=1 on ratio plot
         ax1.axhline(y=1, linewidth = 1)
         set_labels( plt, histogram_properties, show_x_label = True, show_title = False )
-        plt.ylabel( r'$\frac{\mathrm{data}}{\mathrm{pred.}}$', CMS.y_axis_title )
+        # plt.ylabel( r'$\frac{\mathrm{data}}{\mathrm{pred.}}$', CMS.y_axis_title )
+        plt.ylabel( '$\\displaystyle\\frac{\\mathrm{data}}{\\mathrm{pred.}}$', CMS.y_axis_title )
+
         ax1.yaxis.set_label_coords(-0.115, 0.8)
         rplt.errorbar( ratio, emptybins = histogram_properties.emptybins, axes = ax1,
                        xerr = histogram_properties.xerr, )
@@ -341,8 +384,15 @@ def make_data_mc_comparison_plot( histograms = [],
                 else :
                     ratio_upper.SetBinContent(bin_i, 1)
 
-            rplt.fill_between( ratio_upper, ratio_lower, axes, facecolor = '0.75', 
-                               alpha = 0.5, 
+            rplt.fill_between( ratio_upper, ratio_lower, axes, 
+                # facecolor = '0.75',
+                                               color = 'none', 
+                                   edgecolor='black',
+                                   hatch='//', 
+                                   linewidth='0.0',
+                                   # facecolor = '0.75', 
+                                   # alpha = 0.5,  
+                               # alpha = 0.5, 
                                # zorder = len(histograms_) + 1 
                                )
 
@@ -714,12 +764,14 @@ def set_labels( plt, histogram_properties, show_x_label = True,
     # note: fontweight/weight does not change anything as we use Latex text!!!
     logo_location = (0.05, 0.96)
     prelim_location = (0.05, 0.92)
-    additional_location = (0.94, 0.98)
+    # additional_location = (0.94, 0.98)
+    additional_location = (0.75, 0.86)
+
     loc = histogram_properties.cms_logo_location
     if loc == 'right':
         logo_location = (0.95, 0.96)
         prelim_location = (0.95, 0.92)
-        additional_location = (0.75, 0.86)
+        # additional_location = (0.75, 0.86)
         
     plt.text(logo_location[0], logo_location[1], r"\textbf{CMS}", 
              transform=axes.transAxes, fontsize=42,

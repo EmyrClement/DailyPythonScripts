@@ -9,6 +9,7 @@ import numpy
 from math import sqrt
 from config.met_systematics import metsystematics_sources
 from rootpy import asrootpy
+from rootpy.plotting import Hist2D
 from config.variable_binning import bin_edges
 
 def calculate_xsection(inputs, luminosity, efficiency=1.):
@@ -24,6 +25,22 @@ def calculate_xsection(inputs, luminosity, efficiency=1.):
         xsection_error = error / luminosity / efficiency
         add_result((xsection, xsection_error))        
     return result
+
+def calculate_covariance_for_normalised_xsection(covariance, inputs, bin_widths,):
+    new_covariance = covariance.copy()
+
+    values = [ufloat( i[0], i[1] ) for i in inputs]
+    normalisation = sum( values )
+
+    n_rows = covariance.shape[0]
+    n_cols = covariance.shape[1]
+
+    for i_row in range(0,n_rows):
+        for i_col in range(0,n_cols):
+            new_element = covariance[i_row, i_col] / ( bin_widths[i_col] * bin_widths[i_row] * normalisation * normalisation )
+            new_covariance[i_row, i_col] = new_element.nominal_value
+
+    return new_covariance
 
 def calculate_normalised_xsection(inputs, bin_widths, normalise_to_one=False):
     """
@@ -151,7 +168,195 @@ def calculate_lower_and_upper_systematics(central_measurement, list_of_systemati
         positive_error = max(negative_error, positive_error)
     
     return negative_error, positive_error
+
+def calculate_covariance_of_systematics(all_categories, all_variations):
+    nBins = len(all_variations['central'])
+    total_covariance_matrix = numpy.array( numpy.zeros((nBins,nBins )) )
+
+    all_categories_errors = {}
+    for systematic in all_categories:
+        if 'patType1CorrectedPFMet' in systematic:
+            systematic = systematic.split('patType1CorrectedPFMet')[-1]
+        
+        if 'down' in systematic or '-' in systematic or ( 'min' in systematic and systematic != 'luminosity+') or 'Down' in systematic : 
+            all_categories_errors[systematic] = []
+        elif not ( 'up' in systematic or '+' in systematic or 'max' in systematic or 'Up' in systematic ):
+            all_categories_errors[systematic] = []
+
+    errors = []
+    for bin in range(0,nBins):
+
+        # print all_categories
+        # print all_variations.keys()
+        error_for_bin = 0
+        negative_error = 0
+        positive_error = 0
+
+        sources_for_this_bin = []
+        negative_sources = []
+        positive_sources = []
+
+        for systematic in all_categories:
+            if 'patType1CorrectedPFMet' in systematic:
+                systematic = systematic.split('patType1CorrectedPFMet')[-1]
+
+            deviation = all_variations[systematic][bin]
+            if deviation > 0:
+                positive_error += deviation**2
+                positive_sources.append( systematic )
+            else:
+                negative_error += deviation**2
+                negative_sources.append( systematic )
+
+        negative_error = sqrt(negative_error)
+        positive_error = sqrt(positive_error)
+
+
+        if negative_error > positive_error:
+            sources_for_this_bin = negative_sources
+            error_for_bin = negative_error
+        else :
+            sources_for_this_bin = positive_sources
+            error_for_bin = positive_error
+
+        print sources_for_this_bin
+        for source in sources_for_this_bin:
+            if 'down' in systematic or '-' in systematic or ( 'min' in systematic and systematic != 'luminosity+') or 'Down' in systematic : 
+                # Check to see if 'up' version is also present
+                upSource = None
+                if 'down' in systematic:
+                    upSource = source.replace('down', 'up')
+                elif '-' in systematic:
+                    upSource = source.replace('-', '+')
+                elif 'min' in systematic and systematic != 'luminosity+':
+                    upSource = source.replace('min', 'max')
+                elif 'Down' in systematic:
+                    upSource = source.replace('Down', 'Up')
+
+                if upSource in sources_for_this_bin:
+                    print 'Up and down in here!',source,upSource
+
+            print source
+            # all_categories_errors[source].append(all_variations[source][bin])
+
+        print sources_for_this_bin
+        errors.append(error_for_bin)
+
+    for i in range(0,nBins):
+        total_covariance_matrix[i,i] = errors[i] * errors[i]
+
+    return total_covariance_matrix
+
+def calculate_covariance_of_systematics_properly(all_categories, all_variations):
+    # print all_categories
+    # print all_variations.keys()
+
+    sources = []
+    for systematic in all_categories:
+        if 'patType1CorrectedPFMet' in systematic:
+            systematic = systematic.split('patType1CorrectedPFMet')[-1]
+        if 'down' in systematic or '-' in systematic or ( 'min' in systematic and systematic != 'luminosity+') or 'Down' in systematic : 
+            sources.append( systematic )
+        elif not ( 'up' in systematic or '+' in systematic or 'max' in systematic or 'Up' in systematic ):
+            sources.append( systematic )
+
+    nBins = len(all_variations['central'])
+
+    total_covariance_matrix = numpy.array( numpy.zeros((nBins,nBins )) )
+
+    for down_source in sources:
+        max_variation = []
+        down_variation = all_variations[down_source]
+
+        up_variation = down_variation
+
+        if 'down' in down_source:
+            up_variation = all_variations[down_source.replace('down','up')]
+        elif '-' in down_source:
+            up_variation = all_variations[down_source.replace('-','+')]
+        elif 'min' in down_source:
+            up_variation = all_variations[down_source.replace('min','max')]
+        elif 'Down' in down_source:
+            up_variation = all_variations[down_source.replace('Down','Up')]
+
+        # print down_source
+        for u,d in zip( up_variation, down_variation):
+            m = max( abs(u), abs(d) )
+            sign = 0
+            if m == abs(u):
+                sign = numpy.sign(u)
+            elif m == abs(d):
+                sign = numpy.sign(d)
+            max_variation.append( m * sign )
+
+        covariance_matrix = numpy.array( numpy.zeros((nBins,nBins )) )
+        # print covariance_matrix
+
+        for i_row in range(0,nBins):
+            for i_col in range(0,nBins):
+                covariance = max_variation[i_row] * max_variation[i_col]
+                covariance_matrix[i_row,i_col] = covariance
+
+        # print covariance_matrix
+        total_covariance_matrix += covariance_matrix
+
+    # print 'Total covariance matrix'
+    # print total_covariance_matrix
+
+    # for category in all_categories:
+    #     if 'down' in category or '-' in category or 'min' in category:
+    return total_covariance_matrix
+
+
+def calculate_lower_and_upper_systematics_properly(central_measurement, dictionary_of_systematics):
+
+    all_systematics = dictionary_of_systematics.keys()
+    systematic_categories = []
+    print all_systematics
+    for systematic in all_systematics:
+        if 'down' in systematic or '-' in systematic : 
+            systematic_categories.append( systematic )
+        elif not ( 'up' in systematic or '+' in systematic ):
+            systematic_categories.append( systematic )
+    print systematic_categories
+    negative_error = 0
+    positive_error = 0
+
+    for category in systematic_categories:
+        down_variation = dictionary_of_systematics[category] - central_measurement
+
+        up_variation = down_variation
+        if 'down' in category:
+            up_variation = dictionary_of_systematics[category.replace('down','up')] - central_measurement
+        elif '-' in category:
+            up_variation = dictionary_of_systematics[category.replace('-','+')] - central_measurement
+
+        max_variation = max( abs(up_variation), abs(down_variation) )
+        sign = 0
+        if max_variation == abs(up_variation):
+            sign = numpy.sign(up_variation)
+        elif max_variation == abs(down_variation):
+            sign = numpy.sign(down_variation)
+
+        print category,down_variation,up_variation, max_variation, sign
+
+    # for systematic in list_of_systematics:
+    #     deviation = abs(systematic) - abs(central_measurement)
+        
+    #     if deviation > 0:
+    #         positive_error += deviation**2
+    #     else:
+    #         negative_error += deviation**2
+            
+    # negative_error = sqrt(negative_error)
+    # positive_error = sqrt(positive_error)
     
+    # if symmetrise_errors:
+    #     negative_error = max(negative_error, positive_error)
+    #     positive_error = max(negative_error, positive_error)
+    
+    return negative_error, positive_error
+
 def combine_errors_in_quadrature(list_of_errors):
     list_of_errors_squared = [error**2 for error in list_of_errors]
     sum_of_errors_squared = sum(list_of_errors_squared)
@@ -286,3 +491,4 @@ def which_variable_bin(variable, value):
         else:
             break
     return variable_bin
+

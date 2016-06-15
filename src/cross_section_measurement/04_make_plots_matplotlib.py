@@ -13,7 +13,7 @@ value_tuplelist_to_hist, value_errors_tuplelist_to_graph, graph_to_value_errors_
 from tools.plotting import adjust_ratio_ticks
 from math import sqrt
 # rootpy & matplotlib
-from ROOT import kRed, kGreen, kMagenta, kBlue, kBlack, kCyan
+from ROOT import kRed, kGreen, kMagenta, kBlue, kBlack, kCyan, kOrange
 from tools.ROOT_utils import set_root_defaults
 import matplotlib as mpl
 from tools.plotting import get_best_max_y
@@ -398,7 +398,7 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
 
     # now draw data points with only statistical error bars with caps
     if not draw_background_subtraction:
-        rplt.errorbar( hist_data, axes = axes, label = 'do_not_show', xerr = None, capsize = 15, capthick = 3, elinewidth = 2, zorder = len( histograms ) + 2 )    
+        rplt.errorbar( hist_data, axes = axes, label = 'do_not_show', xerr = None, capsize = 8, capthick = 3, elinewidth = 2, zorder = len( histograms ) + 2 )    
     elif draw_background_subtraction:
         data_histograms_only_stat_error_to_plot = [hist_data, hist_data_background_subtraction]
         graphs = spread_x(data_histograms_only_stat_error_to_plot, bin_edges[variable])
@@ -455,7 +455,8 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
                 hist.SetLineColor( kMagenta + 1 )
             elif 'MCATNLO'  in key or 'scaleup' in key:
                 dashes[key] = [5,5,10,5]
-                hist.linecolor = 'orange'
+                hist.SetLineColor( kOrange + 5 )
+                # hist.linecolor = 'orange'
 
             if linestyle != None:
                 hist.linestyle = linestyle
@@ -544,12 +545,12 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
                 syst_upper.SetBinContent( bin_i, 1 + syst_errors[bin_i-1][2]/syst_errors[bin_i-1][0] )
         if category == 'central':
             rplt.fill_between( syst_lower, syst_upper, ax1,
-                               color = 'yellow' )
+                               color = 'gold' )
 
-        rplt.fill_between( stat_upper, stat_lower, ax1, color = '0.75' )
+        rplt.fill_between( stat_upper, stat_lower, ax1, color = '0.6' )
         # legend for ratio plot
-        p_stat = mpatches.Patch(facecolor='0.75', label='Stat.', edgecolor='black' )
-        p_stat_and_syst = mpatches.Patch(facecolor='yellow', label=r'Stat. $\oplus$ Syst.', edgecolor='black' )
+        p_stat = mpatches.Patch(facecolor='0.6', label='Stat.', edgecolor='black' )
+        p_stat_and_syst = mpatches.Patch(facecolor='gold', label=r'Stat. $\oplus$ Syst.', edgecolor='black' )
 
         ratioLegendLocation = 'best'
         if variable == 'MET':

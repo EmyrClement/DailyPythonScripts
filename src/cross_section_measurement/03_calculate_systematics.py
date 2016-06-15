@@ -20,7 +20,8 @@ from copy import deepcopy
 from config import XSectionConfig
 from tools.file_utilities import read_data_from_JSON, write_data_to_JSON
 from tools.Calculation import calculate_lower_and_upper_PDFuncertainty, \
-calculate_lower_and_upper_systematics, combine_errors_in_quadrature
+calculate_lower_and_upper_systematics, combine_errors_in_quadrature, \
+calculate_lower_and_upper_systematics_properly
 
 def read_normalised_xsection_measurement( category, channel ):
     global path_to_JSON, met_type, met_uncertainties_list, k_values
@@ -108,13 +109,10 @@ def summarise_systematics( list_of_central_measurements, dictionary_of_systemati
         elif mass_systematic:
             list_of_systematics = [systematic[bin_i][0] for systematic in dictionary_of_systematics.values()]
             error_down, error_up = calculate_lower_and_upper_systematics( central_value, list_of_systematics, False )
-            print (list_of_systematics)
-            print ('Top systematic :',error_down,error_up)
             # Scale errors calculated using very different top masses
             error_down, error_up = scaleTopMassSystematicErrors( [error_down], [error_up] )
             error_down = error_down[0]
             error_up = error_up[0]
-            print ('After scaling :',error_down,error_up)
         elif kValueSystematic:
             list_of_systematics = [systematic[bin_i][0] for systematic in dictionary_of_systematics.values()]
             error_down, error_up = calculate_lower_and_upper_systematics( central_value, list_of_systematics, True )
@@ -122,25 +120,26 @@ def summarise_systematics( list_of_central_measurements, dictionary_of_systemati
             list_of_systematics = [systematic[bin_i][0] for systematic in dictionary_of_systematics.values()]
             error_down, error_up = calculate_lower_and_upper_systematics( central_value, list_of_systematics, symmetrise_errors )
 
+            # print 'DOING A PROPER JOB'
+            # dictionary_of_systematics_for_this_bin = { category : systematic[bin_i][0] for category, systematic in dictionary_of_systematics.iteritems()}
+            # error_down, error_up = calculate_lower_and_upper_systematics_properly( central_value, dictionary_of_systematics_for_this_bin )
+
         down_errors[bin_i] = error_down
         up_errors[bin_i] = error_up
+
     
+
     return down_errors, up_errors
 
 def scaleTopMassSystematicErrors( error_down, error_up ):
     error_down_new, error_up_new = [], []
-    print ('Original down :',error_down)
-    print ('Original up :',error_up)
-    print 'Scale down :', 1 / ( measurement_config.topMasses[1] - measurement_config.topMasses[0] )
-    print 'Scale up :', 1 / ( measurement_config.topMasses[2] - measurement_config.topMasses[1] )
+
     for down,up in zip( error_down,error_up ):
         upMassDifference = measurement_config.topMasses[2] - measurement_config.topMasses[1]
         downMassDifference = measurement_config.topMasses[1] - measurement_config.topMasses[0]
 
         error_down_new.append( down * measurement_config.topMassUncertainty / downMassDifference )
         error_up_new.append( up * measurement_config.topMassUncertainty / upMassDifference )
-    print ('New down :',error_down_new)
-    print ('New up :',error_up_new)
 
     return error_down_new, error_up_new
 

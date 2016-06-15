@@ -17,20 +17,20 @@ plot_map_common = {}
 plot_map_paper = {
             # # <src relative to DPS plots folder> : <dst relative to TDR plots folder>,
             # # results 8 TeV
-            # 'background_subtraction/7TeV/MET/central/normalised_xsection_combined_*.pdf': '7TeV/MET/',
-            # 'background_subtraction/7TeV/HT/central/normalised_xsection_combined_*.pdf': '7TeV/HT/',
-            # 'background_subtraction/7TeV/ST/central/normalised_xsection_combined_*.pdf': '7TeV/ST/',
-            # 'background_subtraction/7TeV/WPT/central/normalised_xsection_combined_*.pdf': '7TeV/WPT/',
+            'background_subtraction/7TeV/MET/central/normalised_xsection_combined_*.pdf': '7TeV/MET/',
+            'background_subtraction/7TeV/HT/central/normalised_xsection_combined_*.pdf': '7TeV/HT/',
+            'background_subtraction/7TeV/ST/central/normalised_xsection_combined_*.pdf': '7TeV/ST/',
+            'background_subtraction/7TeV/WPT/central/normalised_xsection_combined_*.pdf': '7TeV/WPT/',
             # # results 8 TeV
-            # 'background_subtraction/8TeV/MET/central/normalised_xsection_combined_*.pdf': '8TeV/MET/',
-            # 'background_subtraction/8TeV/HT/central/normalised_xsection_combined_*.pdf': '8TeV/HT/',
-            # 'background_subtraction/8TeV/ST/central/normalised_xsection_combined_*.pdf': '8TeV/ST/',
-            # 'background_subtraction/8TeV/WPT/central/normalised_xsection_combined_*.pdf': '8TeV/WPT/',
+            'background_subtraction/8TeV/MET/central/normalised_xsection_combined_*.pdf': '8TeV/MET/',
+            'background_subtraction/8TeV/HT/central/normalised_xsection_combined_*.pdf': '8TeV/HT/',
+            'background_subtraction/8TeV/ST/central/normalised_xsection_combined_*.pdf': '8TeV/ST/',
+            'background_subtraction/8TeV/WPT/central/normalised_xsection_combined_*.pdf': '8TeV/WPT/',
             # # control plots 8 TeV
-            # 'control_plots/before_fit/8TeV/*_patType1CorrectedPFMet_2orMoreBtags_with_ratio.pdf': 'control/',
-            # 'control_plots/before_fit/8TeV/*_*T_2orMoreBtags_with_ratio.pdf': 'control/',
+            'control_plots/before_fit/8TeV/*_patType1CorrectedPFMet_2orMoreBtags_with_ratio.pdf': 'control/',
+            'control_plots/before_fit/8TeV/*_*T_2orMoreBtags_with_ratio.pdf': 'control/',
 
-            '../tables/background_subtraction/*/*/*_normalised_xsection_*combined.tex': '../tables/'
+            # '../tables/background_subtraction/*/*/*_normalised_xsection_*combined.tex': '../tables/'
             }
 
 plot_map_AN = {}

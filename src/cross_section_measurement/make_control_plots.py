@@ -207,7 +207,9 @@ def make_plot( channel, x_axis_title, y_axis_title,
                           signal_region_hists['SingleTop'],
                           signal_region_hists['TTJet']]
     histogram_lables = ['Data', 'QCD', 'W/Z+Jets', 'Single t', samples_latex['TTJet']]
-    histogram_colors = ['black', 'yellow', 'green', 'magenta', 'red']
+    # histogram_colors = ['black', 'yellow', 'green', 'magenta', 'red']
+    # histogram_colors = ['black', 390, 413, 616, 633]
+    histogram_colors = ['black', 390, 414, 606, 633]
 
     totalErrorList = get_total_error_on_mc( signal_region_hists['TTJet'],
                                             [ signal_region_hists['V+Jets'], signal_region_hists['SingleTop'], qcd_from_data ],
@@ -367,8 +369,8 @@ if __name__ == '__main__':
                             # 'eta in MT bins',
                             # 'eta in WPT bins',
                             # 'QCD PFReliso non-iso',
-                            'QCD PFReliso',
-                            'QCD eta',
+                            # 'QCD PFReliso',
+                            # 'QCD eta',
                             # 'QCD eta shapes',
                             ]
     if make_additional_QCD_plots:
@@ -442,7 +444,7 @@ if __name__ == '__main__':
                   ratio_y_limits = [0.7, 1.3],
                   rebin = 2,
                   legend_location = ( 0.89, 0.78 ),
-                  cms_logo_location = 'right',
+                  cms_logo_location = 'left',
                   )
         make_plot( 'muon',
                   x_axis_title = '$%s$ [GeV]' % variables_latex['MET'],
@@ -454,7 +456,7 @@ if __name__ == '__main__':
                   ratio_y_limits = [0.7, 1.3],
                   rebin = 2,
                   legend_location = ( 0.89, 0.78 ),
-                  cms_logo_location = 'right',
+                  cms_logo_location = 'left',
                   )
     ###################################################
     # MET log
@@ -528,7 +530,7 @@ if __name__ == '__main__':
                   ratio_y_limits = [0.7, 1.3],
                   rebin = 8,
                   legend_location = ( 0.89, 0.78 ),
-                  cms_logo_location = 'right',
+                  cms_logo_location = 'left',
                   )
         make_plot( 'muon',
                   x_axis_title = '$%s$ [GeV]' % variables_latex['HT'],
@@ -540,7 +542,7 @@ if __name__ == '__main__':
                   ratio_y_limits = [0.7, 1.3],
                   rebin = 8,
                   legend_location = ( 0.89, 0.78 ),
-                  cms_logo_location = 'right',
+                  cms_logo_location = 'left',
                   )
     ###################################################
     # ST
@@ -558,7 +560,7 @@ if __name__ == '__main__':
                   ratio_y_limits = [0.7, 1.3],
                   rebin = 8,
                   legend_location = ( 0.89, 0.78 ),
-                  cms_logo_location = 'right',
+                  cms_logo_location = 'left',
                   )
         make_plot( 'muon',
                   x_axis_title = '$%s$ [GeV]' % variables_latex['ST'],
@@ -570,7 +572,7 @@ if __name__ == '__main__':
                   ratio_y_limits = [0.7, 1.3],
                   rebin = 8,
                   legend_location = ( 0.89, 0.78 ),
-                  cms_logo_location = 'right',
+                  cms_logo_location = 'left',
                   )
     ###################################################
     # WPT
@@ -588,7 +590,7 @@ if __name__ == '__main__':
                   ratio_y_limits = [0.7, 1.3],
                   rebin = 20,
                   legend_location = ( 0.89, 0.78 ),
-                  cms_logo_location = 'right',
+                  cms_logo_location = 'left',
                   )
         make_plot( 'muon',
                   x_axis_title = '$%s$ [GeV]' % variables_latex['WPT'],
@@ -600,7 +602,7 @@ if __name__ == '__main__':
                   ratio_y_limits = [0.7, 1.3],
                   rebin = 20,
                   legend_location = ( 0.89, 0.78 ),
-                  cms_logo_location = 'right',
+                  cms_logo_location = 'left',
                   )
     ###################################################
     # MT
