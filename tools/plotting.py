@@ -257,15 +257,15 @@ def make_data_mc_comparison_plot( histograms = [],
     
         rplt.fill_between( stack_upper, stack_lower, axes, 
                 # facecolor = '0.75',
-                                   color = 'black', 
+                                   facecolor = 'none', 
                                    edgecolor='black',
                                    hatch='//', 
                                    linewidth='0.0',
-                                   alpha = '0.0000001'
+                                   # alpha = '0.0000001'
                                    # facecolor = '0.75', 
-                                   # alpha = 0.5,  
-                               # alpha = 0.5, 
-                               # zorder = len(histograms_) + 1 
+                                   # alpha = 0.1,  
+                               # alpha = '1.0', 
+                               zorder = len(histograms_) + 1 
                                )
     elif mc_error > 0:
         stack_lower = sum( stack.GetHists() )

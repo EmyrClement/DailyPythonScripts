@@ -4,12 +4,25 @@ from copy import deepcopy
 from config.latex_labels import variables_latex, measurements_latex, met_systematics_latex, samples_latex, typical_systematics_latex, variables_latex_macros
 from config.variable_binning import variable_bins_latex, variable_bins_ROOT
 from config import XSectionConfig
-from tools.Calculation import getRelativeError, calculate_covariance_of_systematics
+from tools.Calculation import getRelativeError, calculate_covariance_of_systematics, get_correlation_matrix
 from tools.file_utilities import read_data_from_JSON, make_folder_if_not_exists
 from lib import read_normalisation, read_initial_normalisation
 import math
 import os.path
 import numpy as np
+from ROOT import TMath
+from decimal import *
+
+def fix_trailing_zeroes( number ):
+    nMissingZeros = 2 - len( number.replace('.','') )
+    if not '.' in number and len(number) < 2: number += '.'
+    if number[0] == '0':
+        while len( number.split('.')[-1] ) < 2 : number += '0'
+    else :
+        while len( number.replace('.','') ) < 2 : number += '0'
+
+
+    return number
 
 def read_xsection_measurement_results_with_errors(channel):
     global path_to_JSON, variable, k_values, met_type
@@ -24,7 +37,7 @@ def read_xsection_measurement_results_with_errors(channel):
     
     normalised_xsection_measured_unfolded = {'measured':normalised_xsection_unfolded['TTJet_measured'],
                                             'unfolded':normalised_xsection_unfolded['TTJet_unfolded']}
-    
+
     file_name = file_template.replace('.txt', '_with_errors.txt')
     normalised_xsection_unfolded_with_errors = read_data_from_JSON( file_name )
 
@@ -50,7 +63,20 @@ def read_xsection_measurement_results_with_errors(channel):
     normalised_xsection_new_errors = read_data_from_JSON( file_name )
     
     normalised_xsection_measured_unfolded.update({'measured_with_systematics':normalised_xsection_unfolded_with_errors['TTJet_measured'],
-                                                'unfolded_with_systematics':normalised_xsection_unfolded_with_errors['TTJet_unfolded']})
+                                                'unfolded_with_systematics':normalised_xsection_unfolded_with_errors['TTJet_unfolded']},)
+
+    normalised_xsection_measured_unfolded.update({'madgraph':normalised_xsection_unfolded['MADGRAPH'],
+                                                'madgraph_ptreweight':normalised_xsection_unfolded['MADGRAPH_ptreweight'],
+                                                'powheg_v2_pythia':normalised_xsection_unfolded['powheg_v2_pythia'],
+                                                'powheg_v2_herwig':normalised_xsection_unfolded['powheg_v2_herwig'],
+                                                })
+    if measurement_config.centre_of_mass_energy == 8:
+        normalised_xsection_measured_unfolded.update({
+            'mcatnlo':normalised_xsection_unfolded['MCATNLO'],
+            'powheg_v1_pythia':normalised_xsection_unfolded['powheg_v1_pythia'],
+            'powheg_v1_herwig':normalised_xsection_unfolded['powheg_v1_herwig'],
+        },
+        )
     
     normalised_xsection_measured_errors = normalised_xsection_ttbar_generator_errors['TTJet_measured']
     normalised_xsection_measured_errors.update(normalised_xsection_PDF_errors['TTJet_measured'])
@@ -253,7 +279,7 @@ def print_xsections(xsections, channel, toFile = True, print_before_unfolding = 
     else:
         printout += '(%s channel).' % channel
 
-    printout += ' The rightmost three columns show relative uncertainties on the measured values, in percent. The statistical and systematic errors are listed separately, and are combined in quadrature to give the overall relative uncertainty.}\n'
+    printout += ' The rightmost three columns show the relative uncertainties on the measured values, in percent. The statistical and systematic uncertainties are listed separately, and are combined in quadrature to give the overall relative uncertainty.}\n'
 
     # printout += ' The first uncertainty is the statistical uncertainty, and the second is the systematic uncertainty. The overall relative uncertainty is also given in percent.}\n'
     # printout += ' The first uncertainty is the statistical uncertainty, and the second is the systematic uncertainty. The overall uncertainty is also given.  All uncertainties are relative uncertainties in percent.}\n'
@@ -261,14 +287,20 @@ def print_xsections(xsections, channel, toFile = True, print_before_unfolding = 
     #printout += '\\resizebox{\\columnwidth}{!} {\n'
     printout += '\\begin{tabular}{ccccc}\n'
     printout += '\\hline\n'
-    printout += '%s & $\sigma_{\mathrm{meas}}^{\mathrm{norm}}$ &  $\pm \\textrm{ stat.}$ & $\pm \\textrm{ syst.}$ & Relative \\\\ \n' % variables_latex_macros[variable]
+    # printout += '%s & $\sigma_{\mathrm{meas}}^{\mathrm{norm}}$ &  $\pm \\textrm{ stat.}$ & $\pm \\textrm{ syst.}$ & Relative \\\\ \n' % variables_latex_macros[variable]
+    printout += '%s & $1/\sigma\ \mathrm{d}\sigma/\mathrm{d}%s$ &  $\pm \\textrm{ stat.}$ & $\pm \\textrm{ syst.}$ & Relative \\\\ \n' % ( variables_latex_macros[variable], variables_latex_macros[variable])
+
+# r'$\displaystyle\frac{1}{\sigma}  \frac{d\sigma}{d' + variables_latex[variable] + '} \left[\mathrm{GeV}^{-1}\\right]$', CMS.y_axis_title
+
     # printout += '(\GeV) & \multicolumn{3}{c}{($\\times 10^3 \\,\\mathrm{GeV}^{-1}$)} & uncertainty (\%)'
-    printout += '(\GeV) & (\\mathrm{GeV}^{-1}$) & (\%) & (\%) & uncertainty (\%)'
+    printout += '(\GeV) & ($\\mathrm{GeV}^{-1}$) & (\%) & (\%) & uncertainty (\%)'
     printout += '\\\\ \n\hline\n'
 
     bins = variable_bins_ROOT[variable]
     assert(len(bins) == len(xsections['unfolded_with_systematics']))
-    
+    # print 'Output table'
+    outputRelErrors = []
+    # print 'Table'
     for bin_i, variable_bin in enumerate(bins):
         if print_before_unfolding:
             value, stat_error = xsections['measured'][bin_i]
@@ -291,35 +323,37 @@ def print_xsections(xsections, channel, toFile = True, print_before_unfolding = 
         total_relativeError_up = getRelativeError(value, total_error_up)
         total_relativeError_down = getRelativeError(value, total_error_down)
 
-        scale = 1000
-        exponent = 3
+        scale = 10
+        exponent = 1
         value *= scale
-        if value < 1:
+        while value < 1:
             value *= 10
-            exponent = 4
+            exponent += 1
 
         if total_error_up == total_error_down:
-            # relErrorToPrint = '%.3G' % (total_relativeError_up * 100)
-            # nMissingZeros = 3 - len( relErrorToPrint.replace('.','') )
 
-            # if not '.' in relErrorToPrint and len(relErrorToPrint) < 3: relErrorToPrint += '.'
+            relErrorToPrint = fix_trailing_zeroes( '%.2g' % ( total_relativeError_up * 100 ) )
+            stat_error_to_print = fix_trailing_zeroes( '%.2g' % ( stat_error * 100 ) )
+            syst_error_to_print = fix_trailing_zeroes( '%.2g' % ( syst_error_up * 100 ) )
 
-            # while len( relErrorToPrint.replace('.','') ) < 3 : relErrorToPrint += '0'
-            relErrorToPrint = '%.1f' % (total_relativeError_up * 100)
+
+
+            # relErrorToPrint = '%.2g' % (total_relativeError_up * 100)
 
             # printout += '%s & ' % variable_bins_latex[variable_bin] + ' $%.2f$ & $%.2f$ & $%.2f$ & ' % (value * scale, stat_error * scale, syst_error_up * scale) +\
             #         '$%s' % (relErrorToPrint) + '$'
             #         # '$%.f' % (total_relativeError_up) * 100) + '$'
 
-            printout += '%s & ' % variable_bins_latex[variable_bin] + ' $%.2f \\times 10^{-%i}$ & $%.1f$ & $%.1f$ & ' % (value, exponent, stat_error * 100, syst_error_up * 100) +\
+            printout += '%s & ' % variable_bins_latex[variable_bin] + ' $%.2f \\times 10^{-%i}$ & $%s$ & $%s$ & ' % (value, exponent, stat_error_to_print, syst_error_to_print) +\
                     '$%s' % (relErrorToPrint) + '$'
                     # '$%.f' % (total_relativeError_up) * 100) + '$'
-
+            # print stat_error_to_print, syst_error_to_print,relErrorToPrint
+            outputRelErrors.append( relErrorToPrint )
         else:
             printout += '%s & ' % variable_bins_latex[variable_bin] + ' $%.2f$ & $ \pm~ %.2f^\\dagger$ & $ ~^{+%.2f}_{-%.2f}^\\star$ & ' % (value * scale, stat_error * scale, syst_error_up * scale, syst_error_down * scale) +\
                     '$(^{+%.2f}_{-%.2f}' % (total_relativeError_up * 100, total_relativeError_down * 100) + '\%)$'
         printout += '\\\\ \n'
-
+    print 'Done'
     printout += '\\hline \n'
     printout += '\\end{tabular}\n'
     #printout += '}\n' #for resizebox
@@ -338,6 +372,8 @@ def print_xsections(xsections, channel, toFile = True, print_before_unfolding = 
         output_file.close()
     else:
         print printout
+
+    return outputRelErrors
 
 def print_error_table(central_values, errors, channel, toFile = True, print_before_unfolding = False):
     global output_folder, variable, k_values, met_type, b_tag_bin, all_measurements
@@ -604,6 +640,120 @@ def print_typical_systematics_table(central_values, errors, channel, toFile = Tr
     else:
         print printout
 
+def calculate_chi2(xsections,covariance):
+    interestingModels = []
+    if measurement_config.centre_of_mass_energy == 8:
+        interestingModels = [ 'madgraph', 'madgraph_ptreweight', 'mcatnlo', 'powheg_v1_pythia', 'powheg_v1_herwig', 'powheg_v2_pythia', 'powheg_v2_herwig' ]
+    else:
+        interestingModels = [ 'madgraph', 'madgraph_ptreweight', 'powheg_v2_pythia', 'powheg_v2_herwig' ]
+
+    # interestingModels = [ 'madgraph', 'madgraph_ptreweight' ]
+
+    # nDigits = int( abs( round( np.log10( maxCovariance / 1e7 ), 0 ) ) )
+
+    # nDigitsXsec = -3
+    unfolded_data = [ float('%.3g' % i[0]) for i in xsections['unfolded'] ]
+    # print nDigitsXsec
+    # print unfolded_data
+    # print unfolded_data
+    # print covariance
+    # print np.linalg.inv(covariance)
+    # diag_cov = np.array(np.zeros((len(unfolded_data),len(unfolded_data))))
+    # for i in range (0,len(unfolded_data)):
+    #     diag_cov[i,i] = covariance[i,i]
+    # covariance = diag_cov
+    # print diag_cov
+    # covariance = np.abs(covariance)
+    # covariance[2,0] *= 0.5
+    # covariance[0,2] *= 0.5
+    # covariance[2,4] *= 0.5
+    # covariance[4,2] *= 0.5
+
+    # print covariance
+    unc = []
+    for i in range (0,covariance.shape[0]):
+        unc.append( np.sqrt( covariance[i,i] ) )
+    correlation = get_correlation_matrix( unc, covariance)
+
+    # maxCovariance = np.max(np.abs(covariance) )
+    # print maxCovariance
+    # eps = np.finfo(float).eps
+    # print 'NDigits :',nDigits
+    # for i in range (0,covariance.shape[0]):
+    #     for j in range (0,covariance.shape[1]):
+    #         covariance[i,j] = round( covariance[i,j], nDigits )
+            # print covariance[i,j]
+            # if abs( maxCovariance - covariance[i,j] ) < 1e-2 * maxCovariance :
+            #     print 'Small covariance : ',maxCovariance,covariance[i,j],maxCovariance - covariance[i,j]
+            #     covariance[i,j] = Decimal(0)
+            # else:
+            #     covariance[i,j] = Decimal( covariance[i,j] )
+
+    # print correlation
+    # print np.max(correlation)
+    # inverse = np.linalg.inv(covariance)
+
+    # print inverse
+    # # maxInverse = np.max(inverse)
+    # # for i in range (0,inverse.shape[0]):
+    # #     for j in range (0,inverse.shape[1]):
+    # #         if abs( maxInverse - inverse[i,j]) < eps:
+    # #             inverse[i,j] == 0.
+    #         # print covariance[i,j]    print 'FLOAT INFO :',np.finfo(float).eps
+
+    # print 'CHECK :',inverse.dot( covariance )
+
+    for model in interestingModels:
+        xsecs = np.array( [ float('%.3g' % i[0]) for i in xsections[model] ] )
+        # for i,j in zip( xsecs, unfolded_data ):
+        #     print i,j
+        # xsecs = np.array( [ i*0.98 for i in unfolded_data ] )
+        # print xsecs
+        # print model
+        # print unfolded_data,xsecs
+        # print unfolded_data - xsecs
+        # # print unc
+        # # c = 0
+        # # for i,u in zip( unfolded_data - xsecs, unc):
+        # #     c += i**2/u**2
+        # print np.linalg.inv(covariance)
+        # print c
+        # print np.linalg.inv(covariance)[0,:]
+        # print (unfolded_data - xsecs).dot ( np.linalg.inv(covariance)[:,0] )
+        # n = 0
+        # for i,j in zip( (unfolded_data - xsecs), np.linalg.inv(covariance)[:,0]):
+        #     print i,j,i*j
+        #     n += i * j
+        # print n
+        # print (unfolded_data - xsecs).dot( np.linalg.inv(covariance) )
+        # diff = (unfolded_data - xsecs)
+        # variance = [diag_cov[i,i] for i in range(0,diag_cov.shape[0])]
+        # diffOverError = [ d**2/v for d,v in zip( diff, variance) ]
+        # print diff
+        # print variance
+        # print diffOverError
+        # simple_chi2 = sum( diffOverError )
+        # print simple_chi2 / diag_cov.shape[0]
+        # print ( ( unfolded_data  - xsecs ).dot( np.linalg.inv(covariance) ) )
+        # print (unfolded_data - xsecs)
+        chi2 = ( np.transpose( unfolded_data  - xsecs ).dot( np.linalg.inv(covariance) ) ).dot( unfolded_data - xsecs ) 
+        ndf = covariance.shape[0]
+        prob = TMath.Prob( chi2, ndf )
+        print model,chi2,ndf,prob
+        # print model,chi2, chi2// ( diag_cov.shape[0] - 1 )
+
+def print_covariance( full_covariance ):
+    print full_covariance
+    printout = ''
+    maxCovariance = np.max( np.abs(full_covariance) )
+    nDigits = int( abs( round( np.log10( maxCovariance / 1e9 ), 0 ) ) )
+    print nDigits
+    for row in full_covariance:
+        for element in row:
+            printout += '{0:.9g},\t'.format( round( element, nDigits ) )
+        printout += '\n'
+    print printout
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-p", "--path", dest="path", default='data/',
@@ -684,53 +834,50 @@ if __name__ == '__main__':
     for channel in ['combined']:                        
         normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, normalised_xsection_unfolded_errors = read_xsection_measurement_results_with_errors(channel)
 
-# ttbar_generator_systematics_list
-# ttbar_mass_systematics_list
-# hadronisation
-# ptreweight_max
-# met_uncertainties
-# PDF_total_upper, PDF_total_lower
-# other_uncertainties_list
+        stat_covariance = np.loadtxt(path_to_JSON + '/' + variable + '/xsection_measurement_results/combined/central/covariance.txt',delimiter=',')
+        syst_covariance = np.loadtxt(path_to_JSON + '/' + variable + '/xsection_measurement_results/combined/central/covariance_systematic.txt',delimiter=',')
 
-        other_syst_covariance = calculate_covariance_of_systematics(other_uncertainties_list, normalised_xsection_unfolded_errors)
-        hadronisation_syst_covariance = calculate_covariance_of_systematics(['hadronisation'], normalised_xsection_unfolded_errors)
-        ttbar_generator_covariance = calculate_covariance_of_systematics(ttbar_generator_systematics, normalised_xsection_unfolded_errors)
-        ttbar_mass_covariance = calculate_covariance_of_systematics(ttbar_mass_systematics, normalised_xsection_unfolded_errors)
-        ptreweight_covariance = calculate_covariance_of_systematics(['ptreweight_max','ptreweight_min'], normalised_xsection_unfolded_errors)
-        met_covariance = calculate_covariance_of_systematics(met_uncertainties, normalised_xsection_unfolded_errors)
-        pdf_covariance = calculate_covariance_of_systematics(['PDF_total_lower','PDF_total_upper'], normalised_xsection_unfolded_errors)
-
-        total_covariance = other_syst_covariance + hadronisation_syst_covariance + ttbar_generator_covariance + ttbar_mass_covariance + ptreweight_covariance + met_covariance + pdf_covariance
-
-        # syst_covariance = calculate_covariance_of_systematics(all_measurements, normalised_xsection_unfolded_errors)
-        # stat_covariance = np.loadtxt(path_to_JSON + '/' + variable + '/xsection_measurement_results/combined/central/covariance.txt',delimiter=',')
-
-        # full_covariance = stat_covariance + syst_covariance
+        full_covariance = stat_covariance + syst_covariance
 
         xsec = normalised_xsection_measured_unfolded['unfolded_with_systematics']
 
-        print 'Total errors'
-        for i in range(0,total_covariance.shape[0]):
-            print np.sqrt(total_covariance[i,i]) / xsec[i][0] * 100
-
-        # print 'Total errors'
-        # for i in range(0,syst_covariance.shape[0]):
-        #     print np.sqrt(syst_covariance[i,i]) / xsec[i][0] * 100
+        nBins = full_covariance.shape[0]
 
 
-        # n = full_covariance.shape[0]
-        # for i in range(0,n):
-        #     print np.sqrt(full_covariance[i,i])/xsec[i][0] * 100
+        tableErrors = print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = False)
+        # print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = True)
 
-        # print all_measurements
-        # for k in normalised_xsection_unfolded_errors.keys():
-        #     print k
+        # for i in range(0,nBins):
+            # print i,stat_covariance[i,i],np.sqrt(stat_covariance[i,i]) / xsec[i][0] * 100
+            # print i,np.sqrt(syst_covariance[i,i]) / xsec[i][0] * 100
+            # print i,'%.2g' %  ( np.sqrt(stat_covariance[i,i]) / xsec[i][0] * 100),'%.2g' % (np.sqrt(syst_covariance[i,i]) / xsec[i][0] * 100),'%.2g' % ( np.sqrt(full_covariance[i,i]) / xsec[i][0] * 100 )
+            # print '%s  %.2g' %  ( tableErrors[i],  np.sqrt(full_covariance[i,i]) / xsec[i][0] * 100 )
 
-        print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = False)
-        print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = True)
+        # print 'Stat'
+        # calculate_chi2(normalised_xsection_measured_unfolded,stat_covariance)
+        # print 'Sys'
+        # calculate_chi2(normalised_xsection_measured_unfolded,syst_covariance)
+        # print 'Full'
+        # maxCovariance = np.max(np.abs(full_covariance) )
+        # # print maxCovariance
+        # # eps = np.finfo(float).eps
+        # nDigits = int( abs( round( np.log10( maxCovariance / 1e7 ), 0 ) ) )
+        # print nDigits
+        # # print unfolded_data
+        # for i in range(0,full_covariance.shape[0]):
+        #     for j in range(0,full_covariance.shape[1]):
+        #         full_covariance[i,j] = round( full_covariance[i,j], nDigits )
+        # # print full_covariance
+        calculate_chi2(normalised_xsection_measured_unfolded,full_covariance)
+
+        path = output_folder + '/'  + str(measurement_config.centre_of_mass_energy) + 'TeV/'  + variable
+        filename = path + '/fullCovariance.txt'
+        np.savetxt( filename, full_covariance, delimiter = ',' )
+
+        # print_covariance( full_covariance )
 
         print_error_table(normalised_xsection_measured_unfolded, normalised_xsection_unfolded_errors, channel, toFile = True, print_before_unfolding = False)
-#         print_error_table(normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, channel, toFile = True, print_before_unfolding = True)
+        print_error_table(normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, channel, toFile = True, print_before_unfolding = True)
 
         if channel == 'combined':
             print_typical_systematics_table(normalised_xsection_measured_unfolded, normalised_xsection_unfolded_errors, channel, toFile = True, print_before_unfolding = False)

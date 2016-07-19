@@ -28,13 +28,13 @@ ttBarLatex = '$\mathrm{t}\\bar{\mathrm{t}}$'
 
 measurements_latex = {'unfolded': 'unfolded',
                         'measured': 'measured',
-                        'MADGRAPH':  'Madgraph + Pythia',
-                        'MADGRAPH_ptreweight': 'Madgraph + $p_\mathrm{T}$ reweighting',
-                        'MCATNLO': 'MC@NLO + Herwig',
-                        'powheg_v1_pythia': 'Powheg v1 + Pythia',
-                        'powheg_v2_pythia': 'Powheg v2 + Pythia',
-                        'powheg_v1_herwig': 'Powheg v1 + Herwig',
-                        'powheg_v2_herwig': 'Powheg v2 + Herwig',
+                        'MADGRAPH':  r'\textsc{MadGraph \raisebox{.2ex}{+} pythia}',
+                        'MADGRAPH_ptreweight': r'\textsc{MadGraph} \raisebox{.2ex}{+} $p_\mathrm{T}$ reweighting',
+                        'MCATNLO': r'\textsc{mc@nlo \raisebox{.2ex}{+} herwig}',
+                        'powheg_v1_pythia': r'\textsc{powheg v1 \raisebox{.2ex}{+} pythia}',
+                        'powheg_v2_pythia': r'\textsc{powheg v2 \raisebox{.2ex}{+} pythia}',
+                        'powheg_v1_herwig': r'\textsc{powheg v1 \raisebox{.2ex}{+} herwig}',
+                        'powheg_v2_herwig': r'\textsc{powheg v2 \raisebox{.2ex}{+} herwig}',
                         'matchingdown':  'Matching down',
                         'matchingup':  'Matching up',
                         # 'scaledown':  '$Q^{2}$ down',
@@ -107,7 +107,7 @@ samples_latex = {
                  'ZJets':'Z/$\gamma^*$ + jets',
                  'TTJet':ttBarLatex,
                  'SingleTop':'Single Top'  ,
-                 'V+Jets' : 'W/Z + jets'               
+                 'V+Jets' : r'W/Z \raisebox{.2ex}{+} jets'               
                  }
 
 fit_variables_latex = {
@@ -135,6 +135,7 @@ typical_systematics_latex = {"typical_systematics_electron": "Electron trigger e
 
 channel_latex = {
                  'electron' : r"e + jets",
-                 'muon' : r"$\mu$ + jets",
-                 'combined' : r"e, $\mu$ + jets combined",
+                 'muon' : r"\boldmath$\mu$ + jets",
+                 'combined' : r"e, \boldmath$\mu$ + jets combined",
+
                  }

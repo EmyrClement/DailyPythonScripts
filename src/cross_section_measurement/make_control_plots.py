@@ -407,7 +407,7 @@ if __name__ == '__main__':
     ###################################################
     if 'pT' in include_plots:
         make_plot( 'electron',
-                  x_axis_title = '$p_\mathrm{T}(\mathrm{e})$ [GeV]',
+                  x_axis_title = '$p_\mathrm{T}(\mathrm{e})$ (GeV)',
                   y_axis_title = 'Events/(10 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/EPlusJets/Ref selection/Electron/electron_pT_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -418,7 +418,7 @@ if __name__ == '__main__':
                   cms_logo_location = 'right',
                   )
         make_plot( 'muon',
-                  x_axis_title = '$p_\mathrm{T}(\mu)$ [GeV]',
+                  x_axis_title = '$p_\mathrm{T}(\mu)$ (GeV)',
                   y_axis_title = 'Events/(10 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/Muon/muon_pT_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -435,7 +435,7 @@ if __name__ == '__main__':
         print '------> MET'
 
         make_plot( 'electron',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['MET'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['MET'],
                   y_axis_title = 'Events/(10 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/EPlusJets/Ref selection/MET/patType1CorrectedPFMet/MET_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -447,7 +447,7 @@ if __name__ == '__main__':
                   cms_logo_location = 'left',
                   )
         make_plot( 'muon',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['MET'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['MET'],
                   y_axis_title = 'Events/(10 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/MET/patType1CorrectedPFMet/MET_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -463,7 +463,7 @@ if __name__ == '__main__':
     ###################################################
     if 'MET log' in include_plots:
         make_plot( 'electron',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['MET'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['MET'],
                   y_axis_title = 'Events/(20 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/EPlusJets/Ref selection/MET/patType1CorrectedPFMet/MET_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -475,7 +475,7 @@ if __name__ == '__main__':
                   log_y = True,
                   )
         make_plot( 'muon',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['MET'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['MET'],
                   y_axis_title = 'Events/(20 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/MET/patType1CorrectedPFMet/MET_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -521,7 +521,7 @@ if __name__ == '__main__':
     if 'HT' in include_plots:
         print '------> HT'
         make_plot( 'electron',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['HT'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['HT'],
                   y_axis_title = 'Events/(40 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/EPlusJets/Ref selection/MET/HT_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -533,7 +533,7 @@ if __name__ == '__main__':
                   cms_logo_location = 'left',
                   )
         make_plot( 'muon',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['HT'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['HT'],
                   y_axis_title = 'Events/(40 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/MET/HT_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -551,7 +551,7 @@ if __name__ == '__main__':
     if 'ST' in include_plots:
         print '------> ST'
         make_plot( 'electron',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['ST'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['ST'],
                   y_axis_title = 'Events/(40 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/EPlusJets/Ref selection/MET/patType1CorrectedPFMet/ST_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -563,7 +563,7 @@ if __name__ == '__main__':
                   cms_logo_location = 'left',
                   )
         make_plot( 'muon',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['ST'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['ST'],
                   y_axis_title = 'Events/(40 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/MET/patType1CorrectedPFMet/ST_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -581,7 +581,7 @@ if __name__ == '__main__':
     if 'WPT' in include_plots:
         print '------> WPT'
         make_plot( 'electron',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['WPT'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['WPT'],
                   y_axis_title = 'Events/(20 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/EPlusJets/Ref selection/MET/patType1CorrectedPFMet/WPT_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -593,7 +593,7 @@ if __name__ == '__main__':
                   cms_logo_location = 'left',
                   )
         make_plot( 'muon',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['WPT'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['WPT'],
                   y_axis_title = 'Events/(20 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/MET/patType1CorrectedPFMet/WPT_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -610,7 +610,7 @@ if __name__ == '__main__':
     norm_variable = 'MT'
     if 'MT' in include_plots:
         make_plot( 'electron',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['MT'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['MT'],
                   y_axis_title = 'Events/(5 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/EPlusJets/Ref selection/MET/patType1CorrectedPFMet/Transverse_Mass_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -621,7 +621,7 @@ if __name__ == '__main__':
                   cms_logo_location = 'right',
                   )
         make_plot( 'muon',
-                  x_axis_title = '$%s$ [GeV]' % variables_latex['MT'],
+                  x_axis_title = '$%s$ (GeV)' % variables_latex['MT'],
                   y_axis_title = 'Events/(5 GeV)',
                   signal_region = 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/MET/patType1CorrectedPFMet/Transverse_Mass_' + b_tag_bin,
                   qcd_data_region_btag = '0btag',
@@ -643,7 +643,7 @@ if __name__ == '__main__':
         tmp = 'TTbar_plus_X_analysis/EPlusJets/Ref selection/Binned_MT_Analysis/MT_with_patType1CorrectedPFMet_bin_%s/M3_' + b_tag_bin
         regions = [tmp % bin_i for bin_i in variable_bins_ROOT['MT']]
         make_plot( 'electron',
-                  x_axis_title = fit_variables_latex['M3'] + '[GeV]',
+                  x_axis_title = fit_variables_latex['M3'] + '(GeV)',
                   y_axis_title = 'Events/(20 GeV)',
                   signal_region = regions,
                   qcd_data_region_btag = '0btag',
@@ -657,7 +657,7 @@ if __name__ == '__main__':
         tmp = 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/Binned_MT_Analysis/MT_with_patType1CorrectedPFMet_bin_%s/M3_' + b_tag_bin
         regions = [tmp % bin_i for bin_i in variable_bins_ROOT['MT']]
         make_plot( 'muon',
-                  x_axis_title = fit_variables_latex['M3'] + '[GeV]',
+                  x_axis_title = fit_variables_latex['M3'] + '(GeV)',
                   y_axis_title = 'Events/(20 GeV)',
                   signal_region = regions,
                   qcd_data_region_btag = '0btag',

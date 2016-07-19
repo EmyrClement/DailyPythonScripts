@@ -309,8 +309,11 @@ def get_cms_labels( channel ):
         lepton = 'e + jets'
     elif channel == 'muon':
         lepton = '$\mu$ + jets'
+        lepton = r'\boldmath$\mu$ + jets'
     else:
-        lepton = 'e, $\mu$ + jets combined'
+        # lepton = 'e, $\mu$ + jets combined'
+         lepton = r'e, \boldmath$\mu$ + jets combined'
+
 #     channel_label = '%s, $\geq$ 4 jets, %s' % ( lepton, b_tag_bins_latex[b_tag_bin] )
     channel_label = lepton
     template = '%.1f fb$^{-1}$ (%d TeV)'
@@ -375,7 +378,7 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
 
     axes.minorticks_on()
 
-    plt.ylabel( r'$\displaystyle\frac{1}{\sigma}  \frac{d\sigma}{d' + variables_latex[variable] + '} \left[\mathrm{GeV}^{-1}\\right]$', CMS.y_axis_title )
+    plt.ylabel( r'$\displaystyle\frac{1}{\sigma}  \frac{d\sigma}{d' + variables_latex[variable] + '} (\mathrm{GeV}^{-1})$', CMS.y_axis_title )
     plt.tick_params( **CMS.axis_label_major )
     plt.tick_params( **CMS.axis_label_minor )
 
@@ -511,7 +514,7 @@ def make_plots( histograms, category, output_folder, histname, show_ratio = True
         ax1.yaxis.set_major_locator( MultipleLocator( 0.5 ) )
         ax1.yaxis.set_minor_locator( MultipleLocator( 0.1 ) )
 
-        plt.xlabel( '$%s$ [GeV]' % variables_latex[variable], CMS.x_axis_title )
+        plt.xlabel( '$%s$ (GeV)' % variables_latex[variable], CMS.x_axis_title )
         ax1.xaxis.labelpad = 20
         plt.tick_params( **CMS.axis_label_major )
         plt.tick_params( **CMS.axis_label_minor ) 

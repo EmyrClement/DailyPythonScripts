@@ -35,14 +35,30 @@ def unfold_results( results, category, channel, k_value, h_truth, h_measured, h_
         unfoldCfg.Hreco = 0
     else:
         unfoldCfg.Hreco = options.Hreco
-        
+
     h_unfolded_data = unfolding.unfold( h_data )
 
     # unfolding.unfoldObject.GetCov()
 
     covariance_matrix = None
     if category == 'central':
-      covariance_matrix = asrootpy( unfolding.unfoldObject.Ereco(options.Hreco) ).to_numpy()
+      covariance_matrix = asrootpy( unfolding.unfoldObject.Ereco(3) ).to_numpy()
+      print covariance_matrix
+
+      corr = np.array(np.zeros((covariance_matrix.shape[0], covariance_matrix.shape[1]) ))
+
+      for i in range(0,covariance_matrix.shape[0]):
+        for j in range(0,covariance_matrix.shape[1]):
+          corr[i,j] = covariance_matrix[i,j] / np.sqrt( covariance_matrix[i,i] * covariance_matrix[j,j] )
+      print 'Correlation'
+      print corr
+      # for i_row in range(0,covariance_matrix.shape[0]):
+        # for i_col in range(0,covariance_matrix.shape[0]):
+        #   print i_row,i_col
+        #   print covariance_matrix[i_row,i_col]
+        #   # print h_unfolded_data.GetBinContent(i_row+1),h_unfolded_data.GetBinContent(i_col+1)
+        #   print h_unfolded_data.GetBinError(i_row+1)*h_unfolded_data.GetBinError(i_col+1)
+
       # print list( h_unfolded_data.y() )
       # unfolding.unfoldObject.ErecoV(options.Hreco).Draw()
       # raw_input()
@@ -308,6 +324,7 @@ def get_unfolded_normalisation( TTJet_fit_results, category, channel, k_value ):
                           'scaledown': scaledown_results,
                           'scaleup': scaleup_results
                           }
+
     if centre_of_mass == 8:
         normalisation_unfolded['MCATNLO'] = MCATNLO_results
         normalisation_unfolded['powheg_v1_herwig'] = powheg_v1_herwig_results
@@ -368,10 +385,10 @@ def calculate_xsections( normalisation, category, channel, k_value = None ):
 
     write_data_to_JSON( xsection_unfolded, filename )
     
-def calculate_normalised_xsections( normalisation, category, channel, k_value = None, normalise_to_one = False ):
+def calculate_normalised_xsections( normalisation, category, channel, k_value = None, normalise_to_one = False, debug=False ):
     global variable, met_type, path_to_JSON
     TTJet_normalised_xsection = calculate_normalised_xsection( normalisation['TTJet_measured'], bin_widths[variable], normalise_to_one )
-    TTJet_normalised_xsection_unfolded = calculate_normalised_xsection( normalisation['TTJet_unfolded'], bin_widths[variable], normalise_to_one )
+    TTJet_normalised_xsection_unfolded = calculate_normalised_xsection( normalisation['TTJet_unfolded'], bin_widths[variable], normalise_to_one, debug )
     MADGRAPH_normalised_xsection = calculate_normalised_xsection( normalisation['MADGRAPH'], bin_widths[variable], normalise_to_one )
     MADGRAPH_ptreweight_normalised_xsection = calculate_normalised_xsection( normalisation['MADGRAPH_ptreweight'], bin_widths[variable], normalise_to_one )
     powheg_v2_pythia_normalised_xsection = calculate_normalised_xsection( normalisation['powheg_v2_pythia'], bin_widths[variable], normalise_to_one )
@@ -410,7 +427,6 @@ def calculate_normalised_xsections( normalisation, category, channel, k_value = 
         filename = path_to_JSON + '/xsection_measurement_results/%s/kv%d/%s/normalised_xsection_%s.txt' % ( channel, k_value, category, met_type )        
     else:
         filename = path_to_JSON + '/xsection_measurement_results/%s/%s/normalised_xsection_%s.txt' % ( channel, category, met_type )
-    
     if normalise_to_one:
         filename = filename.replace( 'normalised_xsection', 'normalised_to_one_xsection' )
     write_data_to_JSON( normalised_xsection, filename )
@@ -605,9 +621,10 @@ if __name__ == '__main__':
         if combine_before_unfolding:
             unfolded_normalisation_combined, covariance_combined = get_unfolded_normalisation( TTJet_fit_results_combined, category, 'combined', k_value_combined )
         else:
-            covariance_combined = covariance_electron 
-            covariance_combined += covariance_muon
-            # covariance_combined = asrootpy( covariance_combined )
+            if category == 'central':
+              covariance_combined = covariance_electron 
+              covariance_combined += covariance_muon
+              # covariance_combined = asrootpy( covariance_combined )
             unfolded_normalisation_combined = combine_complex_results( unfolded_normalisation_electron, unfolded_normalisation_muon )
 
         filename = path_to_JSON + '/xsection_measurement_results/electron/kv%d/%s/normalisation_%s.txt' % ( k_value_electron_central, category, met_type )
@@ -632,26 +649,26 @@ if __name__ == '__main__':
 #             else:
 #                 unfolded_normalisation_combined_higgs = combine_complex_results( unfolded_normalisation_electron_higgs, unfolded_normalisation_muon_higgs )
 #     
-#             filename = path_to_JSON + '/xsection_measurement_results/electron/kv%d/%s/normalisation_%s_Higgs.txt' % ( k_value_electron_central, category, met_type )
-#             write_data_to_JSON( unfolded_normalisation_electron_higgs, filename )
-#             filename = path_to_JSON + '/xsection_measurement_results/muon/kv%d/%s/normalisation_%s_Higgs.txt' % ( k_value_muon_central, category, met_type )
-#             write_data_to_JSON( unfolded_normalisation_muon_higgs, filename )
-#             filename = path_to_JSON + '/xsection_measurement_results/combined/%s/normalisation_%s_Higgs.txt' % ( category, met_type )
-#             write_data_to_JSON( unfolded_normalisation_combined_higgs, filename )
+            # filename = path_to_JSON + '/xsection_measurement_results/electron/kv%d/%s/normalisation_%s_Higgs.txt' % ( k_value_electron_central, category, met_type )
+            # write_data_to_JSON( unfolded_normalisation_electron_higgs, filename )
+            # filename = path_to_JSON + '/xsection_measurement_results/muon/kv%d/%s/normalisation_%s_Higgs.txt' % ( k_value_muon_central, category, met_type )
+            # write_data_to_JSON( unfolded_normalisation_muon_higgs, filename )
+            # filename = path_to_JSON + '/xsection_measurement_results/combined/%s/normalisation_%s_Higgs.txt' % ( category, met_type )
+            # write_data_to_JSON( unfolded_normalisation_combined_higgs, filename )
 
         # measure xsection
-        # calculate_xsections( unfolded_normalisation_electron, category, 'electron', k_value_electron_central )
-        # calculate_xsections( unfolded_normalisation_muon, category, 'muon', k_value_muon_central )
-        # calculate_xsections( unfolded_normalisation_combined, category, 'combined' )
+        calculate_xsections( unfolded_normalisation_electron, category, 'electron', k_value_electron_central )
+        calculate_xsections( unfolded_normalisation_muon, category, 'muon', k_value_muon_central )
+        calculate_xsections( unfolded_normalisation_combined, category, 'combined' )
+
+        calculate_normalised_xsections( unfolded_normalisation_electron, category, 'electron', k_value_electron_central )
+        calculate_normalised_xsections( unfolded_normalisation_muon, category, 'muon', k_value_muon_central )
+        calculate_normalised_xsections( unfolded_normalisation_combined, category, 'combined', debug=True )
         
-        # calculate_normalised_xsections( unfolded_normalisation_electron, category, 'electron', k_value_electron_central )
-        # calculate_normalised_xsections( unfolded_normalisation_muon, category, 'muon', k_value_muon_central )
-        # calculate_normalised_xsections( unfolded_normalisation_combined, category, 'combined' )
-        
-        # normalise_to_one = True
-        # calculate_normalised_xsections( unfolded_normalisation_electron, category, 'electron', k_value_electron_central, normalise_to_one )
-        # calculate_normalised_xsections( unfolded_normalisation_muon, category, 'muon', k_value_muon_central, normalise_to_one )
-        # calculate_normalised_xsections( unfolded_normalisation_combined, category, 'combined', normalise_to_one )
+        normalise_to_one = True
+        calculate_normalised_xsections( unfolded_normalisation_electron, category, 'electron', k_value_electron_central, normalise_to_one )
+        calculate_normalised_xsections( unfolded_normalisation_muon, category, 'muon', k_value_muon_central, normalise_to_one )
+        calculate_normalised_xsections( unfolded_normalisation_combined, category, 'combined', normalise_to_one )
 
         if category == 'central':
           normalised_xsection_covariance_electron = calculate_covariance_for_normalised_xsection( covariance_electron, unfolded_normalisation_electron['TTJet_unfolded'], bin_widths[variable] )
@@ -662,21 +679,24 @@ if __name__ == '__main__':
           filename = path_to_JSON + '/xsection_measurement_results/electron/kv%d/%s/covariance.txt' % ( k_value_electron_central, category )
           np.savetxt( filename, normalised_xsection_covariance_electron, delimiter = ',' )
 
-          # cov_file = File( filename, 'recreate' )
-          # covariance_electron.Write()
-          # normalised_xsection_covariance_electron.(filename,',')
-          # cov_file.Close()
+          # # cov_file = File( filename, 'recreate' )
+          # # covariance_electron.Write()
+          # # normalised_xsection_covariance_electron.(filename,',')
+          # # cov_file.Close()
 
           filename = path_to_JSON + '/xsection_measurement_results/muon/kv%d/%s/covariance.txt' % ( k_value_muon_central, category )
           np.savetxt( filename, normalised_xsection_covariance_muon, delimiter = ',' )
 
-          # cov_file = File( filename, 'recreate' )
-          # covariance_muon.Write()
-          # normalised_xsection_covariance_muon.Write()
-          # cov_file.Close()
+          # # cov_file = File( filename, 'recreate' )
+          # # covariance_muon.Write()
+          # # normalised_xsection_covariance_muon.Write()
+          # # cov_file.Close()
 
           filename = path_to_JSON + '/xsection_measurement_results/combined/%s/covariance.txt' % ( category )
           np.savetxt( filename, normalised_xsection_covariance_combined, delimiter = ',' )
+          for i in range(0,normalised_xsection_covariance_combined.shape[0]):
+            print np.sqrt( normalised_xsection_covariance_combined[i,i] )
+
           # cov_file = File( filename, 'recreate' )
           # covariance_combined.Write()
           # normalised_xsection_covariance_combined.Write()
