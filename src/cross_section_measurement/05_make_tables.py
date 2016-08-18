@@ -1,7 +1,7 @@
 from __future__ import division  # the result of the division will be always a float
 from optparse import OptionParser
 from copy import deepcopy
-from config.latex_labels import variables_latex, measurements_latex, met_systematics_latex, samples_latex, typical_systematics_latex, variables_latex_macros
+from config.latex_labels import variables_latex, measurements_latex, met_systematics_latex, samples_latex, typical_systematics_latex, variables_latex_macros, variables_hepdata
 from config.variable_binning import variable_bins_latex, variable_bins_ROOT
 from config import XSectionConfig
 from tools.Calculation import getRelativeError, calculate_covariance_of_systematics, get_correlation_matrix
@@ -703,8 +703,12 @@ def calculate_chi2(xsections,covariance):
 
     # print 'CHECK :',inverse.dot( covariance )
 
+    # print unfolded_data
+    # print covariance
+
     for model in interestingModels:
         xsecs = np.array( [ float('%.3g' % i[0]) for i in xsections[model] ] )
+
         # for i,j in zip( xsecs, unfolded_data ):
         #     print i,j
         # xsecs = np.array( [ i*0.98 for i in unfolded_data ] )
@@ -742,16 +746,51 @@ def calculate_chi2(xsections,covariance):
         print model,chi2,ndf,prob
         # print model,chi2, chi2// ( diag_cov.shape[0] - 1 )
 
-def print_covariance( full_covariance ):
-    print full_covariance
+def print_covariance( full_covariance, variable, com ):
+    nBins = full_covariance.shape[0]
+
     printout = ''
+    printout += '*dscomment: Covariance matrix for the normalized tt differential cross section measurements with respect to the $%s$ variable at a center-of-mass energy of %s TeV.  Both statistical and systematic effects are considered.\n' % ( variables_hepdata[variable], str(com) )
+    printout += '*reackey: P P --> TOP TOPBAR X\n'
+    printout += '*obskey: DSIG/D%s\n' % ( variable )
+    printout += '*qual: Cross section : $d\sigma/d%s$\n' % ( variables_hepdata[variable] )
+    printout += '*qual: SQRT(S) IN GEV : %s000.0\n' % ( com )
+
+    printout += '*yheader'
+    i = 1
+    while i <= nBins:
+        printout += ': '
+        printout += str(i)
+        i += 1
+    printout += '\n'
+
+    printout += '*xheader: Bin of $%s$ \n' % ( variables_hepdata[variable] )
+
+    printout += '*data: x '
+
+    i = 1
+    while i <= nBins:
+        printout += ': y '
+        i += 1
+    printout += '\n'
+    # printout += '*data: x : y : y : y \n'
+
+
+
     maxCovariance = np.max( np.abs(full_covariance) )
     nDigits = int( abs( round( np.log10( maxCovariance / 1e9 ), 0 ) ) )
-    print nDigits
+    i = 1
     for row in full_covariance:
+        printout += str(i)
+        i += 1
+        printout += ';\t'
         for element in row:
-            printout += '{0:.9g},\t'.format( round( element, nDigits ) )
+            printout += '{0:.7g};\t'.format( round( element, nDigits ) )
         printout += '\n'
+
+    printout += '*dataend\n'
+
+    print '\n'
     print printout
 
 if __name__ == '__main__':
@@ -837,11 +876,26 @@ if __name__ == '__main__':
         stat_covariance = np.loadtxt(path_to_JSON + '/' + variable + '/xsection_measurement_results/combined/central/covariance.txt',delimiter=',')
         syst_covariance = np.loadtxt(path_to_JSON + '/' + variable + '/xsection_measurement_results/combined/central/covariance_systematic.txt',delimiter=',')
 
+        # print stat_covariance
+        # print syst_covariance
         full_covariance = stat_covariance + syst_covariance
+        # full_covariance = stat_covariance
+
+        # for i in range(0,full_covariance.shape[0]):
+        #     for j in range(0,full_covariance.shape[1]):
+        #         if i != j :
+        #             full_covariance[i,j] = 0
+        # print full_covariance
 
         xsec = normalised_xsection_measured_unfolded['unfolded_with_systematics']
 
         nBins = full_covariance.shape[0]
+
+        for i in range(0,nBins):
+            stat = '%.2g' % ( np.sqrt( stat_covariance[i,i] ) / xsec[i][0] * 100 )
+            sys = '%.2g' % ( np.sqrt( syst_covariance[i,i] ) / xsec[i][0] * 100 )
+            full = '%.2g' % ( np.sqrt( full_covariance[i,i] ) / xsec[i][0] * 100 )
+            print i, stat, sys, full
 
 
         tableErrors = print_xsections(normalised_xsection_measured_unfolded, channel, toFile = True, print_before_unfolding = False)
@@ -874,7 +928,7 @@ if __name__ == '__main__':
         filename = path + '/fullCovariance.txt'
         np.savetxt( filename, full_covariance, delimiter = ',' )
 
-        # print_covariance( full_covariance )
+        print_covariance( full_covariance, variable, measurement_config.centre_of_mass_energy )
 
         print_error_table(normalised_xsection_measured_unfolded, normalised_xsection_unfolded_errors, channel, toFile = True, print_before_unfolding = False)
         print_error_table(normalised_xsection_measured_unfolded, normalised_xsection_measured_errors, channel, toFile = True, print_before_unfolding = True)

@@ -7,10 +7,18 @@ N_JOBS=1
 i=0
 for var in MET HT ST WPT; do
 	echo "Tabulating diff. x-section for distribution: $var"
-	nohup time python src/cross_section_measurement/05_make_tables.py -v $var -c 7 -p data/normalisation/background_subtraction/ -a -o tables/background_subtraction &> logs/05b_${var}_table_7TeV.log &
+	# nohup time 
+	echo $var
+	echo "7"
+	python src/cross_section_measurement/05_make_tables.py -v $var -c 7 -p data/normalisation/background_subtraction/ -a -o tables/background_subtraction 
+	# &> logs/05b_${var}_table_7TeV.log &
 	# wait;
 
-	nohup time python src/cross_section_measurement/05_make_tables.py -v $var -c 8 -p data/normalisation/background_subtraction/ -a -o tables/background_subtraction &> logs/05b_${var}_table_8TeV.log &
+	# nohup time 
+	echo $var
+	echo "8"
+	python src/cross_section_measurement/05_make_tables.py -v $var -c 8 -p data/normalisation/background_subtraction/ -a -o tables/background_subtraction 
+	# &> logs/05b_${var}_table_8TeV.log &
 	wait;
 done
 

@@ -8,7 +8,7 @@
         "/hdfs/TopQuarkGroup/results/histogramfiles/AN-14-071_6th_draft/8TeV/central/TTJet_19584pb_PFElectron_PFMuon_PF2PATJets_PFMET.root"
     ],
     "histograms": [
-        "TTbar_plus_X_analysis/EPlusJets/QCDConversions/MET/patType1CorrectedPFMet/MET_2orMoreBtags"
+        "TTbar_plus_X_analysis/EPlusJets/QCDConversions/MET/patType1CorrectedPFMet/ST_2orMoreBtags"
     ],
     "labels": [
         "Data",
@@ -27,22 +27,22 @@
         ]
     ],
     "title": [
-        "$E_T^{\\text{miss}}$ at $\\sqrt{s}$ = 8 TeV, e+jets"
+        "$S_T$ at $\\sqrt{s}$ = 8 TeV, e+jets"
     ],
     "x_axis_title": [
-        "$E_T^{\\text{miss}}$ [GeV]"
+        "$S_T [GeV]$"
     ],
     "x_limits": [
         [
-            0,
-            300
+            146,
+            2000
         ]
     ],
     "rebin" : [
-        [0.0, 27.0, 52.0, 87.0, 130.0, 172.0, 300]  
+        [146.0, 277.0, 319.0, 361.0, 408.0, 459.0, 514.0, 573.0, 637.0, 705.0, 774.0, 854.0, 940.0, 1200.0] 
     ],
     "y_axis_title": [
-        "events/5 GeV"
+        "events"
     ],
     "colours": ["black", "yellow", "green", "magenta", "red"],
     "mc_error": [0.15]

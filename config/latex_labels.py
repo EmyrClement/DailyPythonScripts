@@ -24,6 +24,13 @@ variables_latex_macros = {
     'WPT': '\wpt'
     }
 
+variables_hepdata = {
+    'MET': 'E_{T}^{miss}',
+    'HT': 'H_{T}',
+    'ST': 'S_{T}',
+    'WPT': 'p^{W}_{T}'
+    }
+
 ttBarLatex = '$\mathrm{t}\\bar{\mathrm{t}}$'
 
 measurements_latex = {'unfolded': 'unfolded',

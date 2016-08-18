@@ -4,7 +4,7 @@ Created on 20 Nov 2012
 @author: kreczko
 '''
 from __future__ import division
-from uncertainties import ufloat
+import uncertainties as u
 import numpy
 from math import sqrt
 from config.met_systematics import metsystematics_sources
@@ -41,77 +41,106 @@ def get_correlation_matrix(uncertainties,covariance):
 def calculate_covariance_for_normalised_xsection(covariance, inputs, bin_widths,):
     new_covariance = covariance.copy()
 
-    values = [ufloat( i[0], i[1] ) for i in inputs]
+    values = [u.ufloat( i[0], i[1] ) for i in inputs]
     normalisation = sum( values )
 
-    n_rows = covariance.shape[0]
-    n_cols = covariance.shape[1]
+    nominal_values = [v.nominal_value for v in values]
 
-    uncertainties = [numpy.sqrt(covariance[i,i]) for i in range(0,n_rows)]
-    # for i in range(0,n_rows):
-    #     print numpy.sqrt(covariance[i,i]),values[i].std_dev
-    correlation = get_correlation_matrix( uncertainties, covariance )
+    values_correlated = u.correlated_values( nominal_values, covariance.tolist() )
+    print 'Original values :',values_correlated
+    print 'Original correlation :',u.correlation_matrix(values_correlated)
+    norm = sum(values_correlated)
+
+    norm_values_correlated = []
+
+    for v,width in zip( values_correlated, bin_widths ):
+        norm_values_correlated.append( v / width / norm )
+
+    print 'New values :',norm_values_correlated
+    print 'New correlation :',u.correlation_matrix(norm_values_correlated)
+    new_covariance = numpy.array( u.covariance_matrix(norm_values_correlated) )
+    print 'New covariance :',u.covariance_matrix(norm_values_correlated)
+
+    # n_rows = covariance.shape[0]
+    # n_cols = covariance.shape[1]
+
+    # uncertainties = [numpy.sqrt(covariance[i,i]) for i in range(0,n_rows)]
+
+
+    # # for i in range(0,n_rows):
+    # #     print numpy.sqrt(covariance[i,i]),values[i].std_dev
+    # correlation = get_correlation_matrix( uncertainties, covariance )
+    # print 'Original correlation'
     # print correlation
-    for i_row in range(0,n_rows):
-        for i_col in range(0,n_cols):
 
-            cor_ij = correlation[i_row,i_col]
+    # # print correlation
+    # for i_row in range(0,n_rows):
+    #     for i_col in range(0,n_cols):
 
-            xsec_i = ( values[i_row] / bin_widths[i_row] / normalisation )
-            xsec_j = ( values[i_col] / bin_widths[i_col] / normalisation )
+    #         cor_ij = correlation[i_row,i_col]
 
-            new_element = xsec_i.std_dev * xsec_j.std_dev * cor_ij
-            # value_row = ufloat( values[i_row].nominal_value, numpy.sqrt( abs(covariance[i_row,i_col]) ) )
-            # value_column = ufloat( values[i_col].nominal_value, numpy.sqrt( abs(covariance[i_row,i_col]) ) )
+    #         xsec_i = ( values[i_row] / bin_widths[i_row] / normalisation )
+    #         xsec_j = ( values[i_col] / bin_widths[i_col] / normalisation )
 
-            # xsec_i_xsec_j = ufloat( (values[i_row] * values[i_col]).nominal_value, abs( covariance[i_row,i_col] ) )
-            # value_i_value_j = value_row * value_column
+    #         new_element = xsec_i.std_dev * xsec_j.std_dev * cor_ij
+    #         # value_row = u.ufloat( values[i_row].nominal_value, numpy.sqrt( abs(covariance[i_row,i_col]) ) )
+    #         # value_column = u.ufloat( values[i_col].nominal_value, numpy.sqrt( abs(covariance[i_row,i_col]) ) )
+
+    #         # xsec_i_xsec_j = u.ufloat( (values[i_row] * values[i_col]).nominal_value, abs( covariance[i_row,i_col] ) )
+    #         # value_i_value_j = value_row * value_column
 
 
 
-            # normalisation = ufloat(0,0)
-            # for i in range(0,n_rows):
-            #     if i == n_rows:
-            #         # normalisation += value_row
-            #     elif i == n_cols: 
-            #         # normalisation += value_column 
-            #     else:
-            #         # normalisation += values[i]
+    #         # normalisation = u.ufloat(0,0)
+    #         # for i in range(0,n_rows):
+    #         #     if i == n_rows:
+    #         #         # normalisation += value_row
+    #         #     elif i == n_cols: 
+    #         #         # normalisation += value_column 
+    #         #     else:
+    #         #         # normalisation += values[i]
 
-            # if i_row == i_col:
-            #     print i_row, i_col, new_element, numpy.sqrt(new_element)
-            #     print value_row,value_column,value_i_value_j
-            #     print normalisation
-            # new_element = value_i_value_j / bin_widths[i_row] / bin_widths[i_col] / normalisation / normalisation
-            # new_element = new_element.std_dev * numpy.sign( covariance[i_row,i_col] )
+    #         # if i_row == i_col:
+    #         #     print i_row, i_col, new_element, numpy.sqrt(new_element)
+    #         #     print value_row,value_column,value_i_value_j
+    #         #     print normalisation
+    #         # new_element = value_i_value_j / bin_widths[i_row] / bin_widths[i_col] / normalisation / normalisation
+    #         # new_element = new_element.std_dev * numpy.sign( covariance[i_row,i_col] )
 
-            # simple = covariance[i_row,i_col] / bin_widths[i_row] / bin_widths[i_col] / normalisation ** 2
-            # new_element = covariance[i_row, i_col] / values[i_row].nominal_value ** 2 + norm2Error / normalisation.nominal_value ** 2
-            # print covariance[i_row, i_col] / values[i_row].nominal_value ** 2
-            # print norm2Error
-            # print normalisation.nominal_value
-            # print normalisation.nominal_value ** 2
-            # print norm2Error / normalisation.nominal_value ** 2
-            # print 'Sqrt this :',new_element
-            # new_element = numpy.sqrt( new_element )
-            # new_element *= values[i_row].nominal_value * values[i_col].nominal_value
-            # new_element /= ( bin_widths[i_col] * bin_widths[i_row] )
-            # new_element = covariance[i_row,i_col] / bin_widths[i_row] / bin_widths[i_col] / normalisation.nominal_value ** 2
-            # / ( bin_widths[i_col] * bin_widths[i_row] * normalisation * normalisation )
-            # if i_row == i_col:
-            # # # print values[i_row]
-            # # # # print numpy.sqrt( values[i_row].nominal_value / values[i_row].std_dev ) ** 2 + (norm2Error / normalisation ** 2) * values[i_row].nominal_value / bin_widths[i_row] / normalisation
+    #         # simple = covariance[i_row,i_col] / bin_widths[i_row] / bin_widths[i_col] / normalisation ** 2
+    #         # new_element = covariance[i_row, i_col] / values[i_row].nominal_value ** 2 + norm2Error / normalisation.nominal_value ** 2
+    #         # print covariance[i_row, i_col] / values[i_row].nominal_value ** 2
+    #         # print norm2Error
+    #         # print normalisation.nominal_value
+    #         # print normalisation.nominal_value ** 2
+    #         # print norm2Error / normalisation.nominal_value ** 2
+    #         # print 'Sqrt this :',new_element
+    #         # new_element = numpy.sqrt( new_element )
+    #         # new_element *= values[i_row].nominal_value * values[i_col].nominal_value
+    #         # new_element /= ( bin_widths[i_col] * bin_widths[i_row] )
+    #         # new_element = covariance[i_row,i_col] / bin_widths[i_row] / bin_widths[i_col] / normalisation.nominal_value ** 2
+    #         # / ( bin_widths[i_col] * bin_widths[i_row] * normalisation * normalisation )
+    #         # if i_row == i_col:
+    #         # # # print values[i_row]
+    #         # # # # print numpy.sqrt( values[i_row].nominal_value / values[i_row].std_dev ) ** 2 + (norm2Error / normalisation ** 2) * values[i_row].nominal_value / bin_widths[i_row] / normalisation
 
-            # # # print 'Original : ',covariance[i_row, i_col]
-            # # # print bin_widths[i_col],bin_widths[i_row],normalisation
-            #     # print xsec_i_xsec_j
-            #     print values[i_row].nominal_value,values[i_row].std_dev
-            #     print (values[i_row] * values[i_col]).std_dev, covariance[i_row,i_col]
-            #     print values[i_row] * values[i_col], covariance[i_row,i_col]
+    #         # # # print 'Original : ',covariance[i_row, i_col]
+    #         # # # print bin_widths[i_col],bin_widths[i_row],normalisation
+    #         #     # print xsec_i_xsec_j
+    #         #     print values[i_row].nominal_value,values[i_row].std_dev
+    #         #     print (values[i_row] * values[i_col]).std_dev, covariance[i_row,i_col]
+    #         #     print values[i_row] * values[i_col], covariance[i_row,i_col]
 
-            #     print 'New :',new_element, numpy.sqrt(new_element)
-            #     print 'Simple : ',simple, numpy.sqrt(simple.nominal_value)
-            new_covariance[i_row, i_col] = new_element
+    #         #     print 'New :',new_element, numpy.sqrt(new_element)
+    #         #     print 'Simple : ',simple, numpy.sqrt(simple.nominal_value)
+    #         new_covariance[i_row, i_col] = new_element
+
+    # new_uncertainties = [numpy.sqrt(new_covariance[i,i]) for i in range(0,n_rows)]
+    # print 'New uncertainties :',new_uncertainties
+
+    # new_correlation = get_correlation_matrix( new_uncertainties, new_covariance )
+    # print 'New correlation'
+    # print new_correlation
 
     return new_covariance
 
@@ -125,7 +154,7 @@ def calculate_normalised_xsection(inputs, bin_widths, normalise_to_one=False, de
         @param inputs: list of value-error pairs
         @param bin_widths: bin widths of the inputs
     """
-    values = [ufloat( i[0], i[1] ) for i in inputs]
+    values = [u.ufloat( i[0], i[1] ) for i in inputs]
     normalisation = 0
     if normalise_to_one:
         normalisation = sum( [value / bin_width for value, bin_width in zip( values, bin_widths )] )
@@ -167,7 +196,7 @@ def decombine_result(combined_result, original_ratio):
     if original_ratio == 0:
         return combined_result, (0,0)
     else:
-        combined_result = ufloat(combined_result[0], combined_result[1])
+        combined_result = u.ufloat(combined_result[0], combined_result[1])
         sample_1 = combined_result * original_ratio / (1 + original_ratio)
         sample_2 = combined_result - sample_1
         
@@ -284,6 +313,8 @@ def calculate_lower_and_upper_systematics(central_measurement, list_of_systemati
 
     for name,systematic in list_of_systematics.iteritems():
         deviation = abs(systematic) - abs(central_measurement)
+        if debug:
+            print name, systematic, central_measurement, deviation, (systematic/central_measurement - 1)*100
 
         if deviation > 0:
             positive_error += deviation**2
@@ -322,13 +353,13 @@ def calculate_lower_and_upper_systematics(central_measurement, list_of_systemati
                 dictionary_of_errors_to_use[source] = positive_error_dictionary[source]
             else:
                 dictionary_of_errors_to_use[source] = negative_error_dictionary[source]
-    # if debug :
-    #     print 'Debug :',negative_error,positive_error,dictionary_of_errors_to_use
+    if debug :
+        print 'Debug :',negative_error,positive_error,dictionary_of_errors_to_use
     #     print negative_error_dictionary
     #     print positive_error_dictionary    
     return negative_error, positive_error, dictionary_of_errors_to_use
 
-def calculate_covariance_of_systematics_03(errors, mass_systematic=False, hadronisation=False, pdf=False, oneway=False, debug = False):
+def calculate_covariance_of_systematics_03(errors, central, mass_systematic=False, hadronisation=False, pdf=False, oneway=False, debug = False):
 
     all_systematic_labels = errors[0].keys()
     # print all_systematic_labels
@@ -355,7 +386,7 @@ def calculate_covariance_of_systematics_03(errors, mass_systematic=False, hadron
 
 
     nBins = len(errors)
-    for bin in errors:
+    for bin, c in zip(errors,central):
         # for e in bin.values():
         #     totalE2 += e*e
         nSystematics = 0
@@ -383,8 +414,8 @@ def calculate_covariance_of_systematics_03(errors, mass_systematic=False, hadron
                     if sign == 0:
                         sign = numpy.sign( up_error )
 
-                if debug:
-                    print systName, upSource, down_error, up_error
+                # if debug:
+                #     print systName, upSource, down_error, up_error
 
                 sign = 0
                 if hadronisation or oneway:
@@ -402,18 +433,29 @@ def calculate_covariance_of_systematics_03(errors, mass_systematic=False, hadron
                             sign = 1
                     else:
                         sign = numpy.sign( up_error - down_error )
-                if debug:
-                    print 'New sign :',sign
+                        # if debug:
+                        #     print 'Up down have same sign :',upSource,up_error,systName,down_error
+                        #     print up_error / c[0] * 100, down_error / c[0] * 100
+                        #     print sign
+                        #     t = numpy.sqrt(up_error**2 + down_error**2)
+                        #     print t/c[0] * 100
 
                 if mass_systematic:
 
                     sign = numpy.sign( up_error - down_error )
-                    if debug:
-                        print 'Mass',up_error,down_error,sign
-                    if abs(up_error) > abs(down_error):
+                    # total_error = numpy.sqrt(up_error**2 + down_error**2) * sign
+                    total_error = 0
+
+                    if numpy.sign( up_error ) == numpy.sign( down_error ):
+                        total_error = numpy.sqrt(up_error**2 + down_error**2) * sign
+                    elif abs(up_error) > abs(down_error):
                         total_error = abs( up_error ) * sign
                     else:
                         total_error = abs( down_error ) * sign
+
+                    if debug:
+                        print 'Mass',up_error,down_error,sign,total_error
+
                 else:
                     total_error = numpy.sqrt(up_error**2 + down_error**2) * sign
 
@@ -429,15 +471,54 @@ def calculate_covariance_of_systematics_03(errors, mass_systematic=False, hadron
         covariance_matrix = numpy.array( numpy.zeros((nBins,nBins )) )
         correlation_matrix = numpy.array( numpy.zeros((nBins,nBins )) )
 
+        maxError = max( [abs(error/c[0]) for error,c in zip( e, central ) ] )
+        # print e
+        # print central
+        # for error, c in zip( e,central ):
+        #     print error/c[0]
+
+
         for i_row in range(0,nBins):
             for i_col in range(0,nBins):
                 cor = 1.0
                 # if pdf:
                 #     cor = 0.0
+
+                # if 'JES' in source or 'JER' in source or 'BJet' in source:
+                #     cor = 0.9
+
+                # if 'hadronisation' in source:
+                #     cor = 1
+
+                # if 'TTJets_scaledown' in source:
+                #     cor = 0.9
+
+                # if 'hadronisation' in source or 'VJets' in source or 'TTJets_scale' in source or 'TTJets_matching' in source or mass_systematic:
+                #     if abs(e[i_row]) < central[i_row][1] or abs(e[i_col]) < central[i_col][1] :
+                #         if debug:
+                #             print central[i_row],central[i_col],e[i_row],e[i_col]
+                #         cor = 0.
+                # else:
+                # if abs(e[i_row]) < central[i_row][1] * 0.2 or abs(e[i_col]) < central[i_col][1] * 0.2 :
+                #     if debug:
+                #         print central[i_row],central[i_col],e[i_row],e[i_col]
+                #     cor = 0.
+
+                # if 'TTJets_ptreweight' in source:
+                #     cor = 0
+                # if 'JES' in source or 'BJet' in source or 'PU' in source or 'SingleTop' in source or 'PDF' in source:
+                #     cor = 0
+
+                # if maxError < 0.01: cor = 0.
+
+
                 if i_row == i_col: cor = 1.
+
+
 
                 # if debug:
                     # print e[i_row],e[i_col]
+
 
 
                 cov = e[i_row] * e[i_col] * cor

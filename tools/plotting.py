@@ -74,7 +74,7 @@ class PlotConfig:
     '''
     general_options = ['files', 'histograms', 'labels', 'plot_type', 'output_folder',
                   'output_format', 'command', 'data_index', 'normalise',
-                  'show_ratio', 'show_stat_errors_on_mc', 'colours', 'name_prefix']
+                  'show_ratio', 'show_stat_errors_on_mc', 'colours', 'name_prefix', 'subtract-files']
     
     def __init__( self, config_file, **kwargs ):
         self.config_file = config_file
@@ -522,7 +522,7 @@ def make_shape_comparison_plot( shapes = [],
             shape.fillstyle = 'solid'
         else:
             shape.linewidth = 5
-            
+    print shapes_
     if not histogram_properties.y_limits:
         histogram_properties.y_limits = [0, get_best_max_y(shapes_, False)]
     # plot with matplotlib
@@ -557,10 +557,14 @@ def make_shape_comparison_plot( shapes = [],
                 ncol = histogram_properties.legend_columns )
     l1.set_zorder(102)
     #add error bars
-    graphs = spread_x(shapes_, list(shapes_[0].xedges()))
-    for graph in graphs:
-        rplt.errorbar( graph, axes = axes )
+    # graphs = spread_x(shapes_, list(shapes_[0].xedges()))
+    graphs = shapes_
 
+    for graph in graphs:
+        graph.elinewidth = 2
+        (_, caps, _) =rplt.errorbar( graph, axes = axes, xerr=0, elinewidth = 2, capsize=5 )
+        for c in caps:
+            c.set_markeredgewidth(3)
     adjust_axis_limits(axes, histogram_properties, shapes_)
     if make_ratio:
         plt.setp( axes.get_xticklabels(), visible = False )
@@ -585,7 +589,7 @@ def make_shape_comparison_plot( shapes = [],
             ax1.set_ylim( ymin = histogram_properties.ratio_y_limits[0],
                       ymax = histogram_properties.ratio_y_limits[1] )
         # dynamic tick placement
-        adjust_ratio_ticks(ax1.yaxis, n_ticks = 3)
+        adjust_ratio_ticks(ax1.yaxis, n_ticks = 3, y_limits =  histogram_properties.ratio_y_limits)
     
     if CMS.tight_layout:
         plt.tight_layout()

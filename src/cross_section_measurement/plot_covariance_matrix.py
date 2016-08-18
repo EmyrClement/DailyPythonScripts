@@ -42,6 +42,7 @@ if __name__ == '__main__':
 		syst_covariance = np.loadtxt(path_to_JSON + '/' + variable + '/xsection_measurement_results/combined/central/covariance_systematic.txt',delimiter=',')
 
 		full_covariance = stat_covariance + syst_covariance
+		# full_covariance = syst_covariance
 
 		print full_covariance
 		nBins = full_covariance.shape[0]

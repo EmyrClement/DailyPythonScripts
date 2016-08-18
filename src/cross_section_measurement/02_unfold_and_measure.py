@@ -42,7 +42,7 @@ def unfold_results( results, category, channel, k_value, h_truth, h_measured, h_
 
     covariance_matrix = None
     if category == 'central':
-      covariance_matrix = asrootpy( unfolding.unfoldObject.Ereco(3) ).to_numpy()
+      covariance_matrix = asrootpy( unfolding.unfoldObject.Ereco(options.Hreco) ).to_numpy()
       print covariance_matrix
 
       corr = np.array(np.zeros((covariance_matrix.shape[0], covariance_matrix.shape[1]) ))
@@ -281,7 +281,7 @@ def get_unfolded_normalisation( TTJet_fit_results, category, channel, k_value ):
                                                 luminosity = luminosity,
                                                 load_fakes = load_fakes
                                                 )
-
+    print 'Overflow in madgraph :',h_truth.GetBinContent(h_truth.GetNbinsX()),h_truth.GetBinContent(h_truth.GetNbinsX() + 2)
     MADGRAPH_results = hist_to_value_error_tuplelist( h_truth )
     MADGRAPH_ptreweight_results = hist_to_value_error_tuplelist( h_truth_ptreweight )
     powheg_v2_pythia_results = hist_to_value_error_tuplelist( h_truth_powheg_v2_pythia )
