@@ -5,7 +5,7 @@ class XSectionConfig():
     current_analysis_path = '/hdfs/TopQuarkGroup/run2/atOutput/'
     known_centre_of_mass_energies = [13]
     # has to be separate as many variables depend on it
-    luminosities = {13:2172}
+    luminosities = {13:12892}
 
     parameters = [
         'SingleTop_category_templates', 'SingleTop_category_templates_trees', 'SingleTop_file',
@@ -94,7 +94,7 @@ class XSectionConfig():
     def __fill_defaults__( self ):
         self.met_type = 'patType1CorrectedPFMet'
 
-        self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/25ns/'
+        self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/2016/'
         self.path_to_unfolding_histograms = '/hdfs/TopQuarkGroup/run2/unfolding/13TeV/25ns/'
 
         path_to_files = self.path_to_files
@@ -159,6 +159,7 @@ class XSectionConfig():
         self.data_file_electron = path_to_files + 'data_electron_tree.root'
 
         self.data_file_muon_trees = path_to_files + 'data_muon_tree.root'
+        # self.data_file_muon_trees = '/storage/ec6821/AnalysisTools/CMSSW_8_0_17/src/tree_SingleMuon_15930pb_PFElectron_PFMuon_PF2PATJets_MET_201.root'
         self.data_file_electron_trees = path_to_files + 'data_electron_tree.root'
 
         self.muon_QCD_file = path_to_files + 'QCD_data_mu.root'
@@ -535,7 +536,9 @@ class XSectionConfig():
         middle = self.middle
         path_to_files = self.path_to_files
 
-        self.new_luminosity = 2172. 
+        # self.new_luminosity = 11358.
+        # self.new_luminosity = 15872
+        self.new_luminosity = 15930
         self.ttbar_xsection = 831.76  # pb
 
         self.rate_changing_systematics = {#TODO check where this is used
