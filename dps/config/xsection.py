@@ -51,6 +51,7 @@ class XSectionConfig():
         'vjets_theory_systematic_prefix'
     ]
     
+    # Used in 01
     samples = [
         'data',
         'TTBar', 
@@ -59,6 +60,7 @@ class XSectionConfig():
         'QCD'
     ]
 
+    # Used in 01
     variables = [
         'HT',
         'MET',
@@ -69,6 +71,7 @@ class XSectionConfig():
         'abs_lepton_eta'
     ]
 
+    # Used in 01
     variables_no_met = [
         'HT', 
         'NJets', 
@@ -89,18 +92,16 @@ class XSectionConfig():
     def __fill_defaults__( self ):
         self.met_type = 'patType1CorrectedPFMet'
 
-        # self.path_to_files = self.current_analysis_path + str( self.centre_of_mass_energy ) + 'TeV/2016/'
         self.path_to_files = self.current_analysis_path
+        path_to_files = self.path_to_files
 
         # self.path_to_unfolding_histograms = '/hdfs/TopQuarkGroup/run2/unfolding/13TeV/2016/'
         self.path_to_unfolding_histograms = 'unfolding/13TeV/'
-
-        path_to_files = self.path_to_files
         path_to_unfolding_histograms = self.path_to_unfolding_histograms
 
         self.luminosity = self.luminosities[self.centre_of_mass_energy]
 
-        # general
+        # Used in 01
         self.met_systematics = {
             'JER_up' : 0,
             'JER_down' : 1,
@@ -114,22 +115,31 @@ class XSectionConfig():
             'TauEnDown' : 9,
             'UnclusteredEnUp' : 10,
             'UnclusteredEnDown' : 11,
-            # 'ElectronEn_up' : 6,
-            # 'ElectronEn_down' : 7,
-            # 'MuonEn_up' : 4,
-            # 'MuonEn_down' : 5,
-            # 'TauEn_up' : 8,
-            # 'TauEn_down' : 9,
-            # 'UnclusteredEn_up' : 10,
-            # 'UnclusteredEn_down' : 11,
         }
+
+        # Remove?
+        self.met_systematics_suffixes = self.met_systematics.keys()
+
+        # Used in 01 - combine with self.met_systematics?
+        self.met_specific_systematics = [
+            'ElectronEnUp',
+            'ElectronEnDown',
+            'MuonEnUp',
+            'MuonEnDown',
+            'TauEnUp',
+            'TauEnDown',
+            'UnclusteredEnUp',
+            'UnclusteredEnDown',
+        ]
+
 
         self.analysis_types = {
-            'electron':'EPlusJets',
-            'muon':'MuPlusJets',
-            'combined':'combined'
+            'electron'  :'EPlusJets',
+            'muon'      :'MuPlusJets',
+            'combined'  : 'combined'
         }
 
+        # Needed? Where?
         # measurement script options
         self.translate_options = {
             'all':'',
@@ -147,6 +157,7 @@ class XSectionConfig():
             'type1':'patType1CorrectedPFMet',
         }
 
+        # Needed?
         self.ttbar_theory_systematic_prefix = 'TTJets_'
         self.vjets_theory_systematic_prefix = 'VJets_'
         # files
@@ -158,24 +169,6 @@ class XSectionConfig():
         self.data_file_muon = '/hdfs/TopQuarkGroup/db0268/data_muon_tree.root'
         self.data_file_electron = '/hdfs/TopQuarkGroup/db0268/data_electron_tree.root'
 
-
-
-
-# 
-# 
-# 
-        self.muon_QCD_file = path_to_files + 'QCD_data_mu.root'
-        self.SingleTop_file = path_to_files + 'SingleTop.root'
-        self.electron_QCD_MC_file = path_to_files + 'QCD_Electron.root'
-        self.muon_QCD_MC_file = path_to_files + 'QCD_data_mu.root'
-
-        self.SingleTop_tree_file = path_to_files + 'SingleTop_tree.root'
-        self.muon_QCD_tree_file = path_to_files + 'QCD_Muon_tree.root'
-        self.electron_QCD_MC_tree_file = path_to_files + 'QCD_Electron_tree.root'
-        self.muon_QCD_MC_tree_file = path_to_files + 'QCD_Muon_tree.root'
-# 
-# 
-# 
         self.higgs_file = path_to_files + 'central/TTH_Inclusive_M-125' + middle + '.root'
 
         self.categories_and_prefixes = {
@@ -258,7 +251,7 @@ class XSectionConfig():
             'TTJets_alphaSdown' : '',
         }
 
-
+        # Used in 01
         self.normalisation_systematics = [
             'central',
 
@@ -345,24 +338,10 @@ class XSectionConfig():
             # 'Top_eta_reweight'          : ['Top_eta_reweight_up', 'Top_eta_reweight_down'],
         }
 
-        self.met_specific_systematics = [
-            'ElectronEnUp',
-            'ElectronEnDown',
-            'MuonEnUp',
-            'MuonEnDown',
-            'TauEnUp',
-            'TauEnDown',
-            'UnclusteredEnUp',
-            'UnclusteredEnDown',
-        ]
-
-
-
-        self.met_systematics_suffixes = self.met_systematics.keys()
-
         # now fill in the centre of mass dependent values
         self.__fill_defaults_13TeV__()
 
+        # Needed?
         self.generator_systematics = [ 
             'scaleup', 'scaledown',
             'massup', 'massdown',
@@ -437,22 +416,23 @@ class XSectionConfig():
         categories_and_prefixes = self.categories_and_prefixes
         generator_mcsamples = self.generator_mcsamples
 
+        # Used in 01
         self.general_trees =            {category: path_to_files + category + '/%s' + middle + prefix + '.root' 
             for category, prefix in categories_and_prefixes.iteritems()}
-        self.ttbar_trees =              {category: path_to_files + '/TTJets_PowhegPythia8_tree.root' 
+        self.ttbar_trees =              {category: path_to_files + 'TTJets_PowhegPythia8_tree.root' 
             for category in self.normalisation_systematics}
-        self.SingleTop_trees =          {category: path_to_files + '/SingleTop_tree.root' 
+        self.SingleTop_trees =          {category: path_to_files + 'SingleTop_tree.root' 
             for category in self.normalisation_systematics}
-        self.VJets_trees =              {category: path_to_files + '/VJets_tree.root' 
+        self.VJets_trees =              {category: path_to_files + 'VJets_tree.root' 
             for category in self.normalisation_systematics}
-        self.electron_QCD_MC_trees =    {category: path_to_files + '/QCD_Electron_tree.root' 
+        self.electron_QCD_MC_trees =    {category: path_to_files + 'QCD_Electron_tree.root' 
             for category in self.normalisation_systematics}
-        self.muon_QCD_MC_trees =        {category: path_to_files + '/QCD_Muon_tree.root' 
+        self.muon_QCD_MC_trees =        {category: path_to_files + 'QCD_Muon_tree.root' 
             for category in self.normalisation_systematics}
-        self.ttbar_generator_trees =    {category: path_to_files + '/TTJets_' + category + '_tree.root' 
+        self.ttbar_generator_trees =    {category: path_to_files + 'TTJets_' + category + '_tree.root' 
             for category in generator_mcsamples}
         
-
+        # Need with generator_mcsamples????
         self.ttbar_amc_trees = path_to_files + '/TTJets_amc_tree.root'
         self.ttbar_madgraph_trees = path_to_files + '/TTJets_madgraph_tree.root'
         self.ttbar_powhegpythia8_trees = path_to_files + '/TTJets_powhegPythia8_tree.root'
@@ -467,20 +447,21 @@ class XSectionConfig():
         self.ttbar_jerup_trees = path_to_files + '/TTJets_PowhegPythia8_plusJER_tree.root'
         self.ttbar_jerdown_trees = path_to_files + '/TTJets_PowhegPythia8_minusJER_tree.root'
 
+        # Needed?
+        self.data_muon_category_templates = {
+            'central': self.data_file_muon,
+            'JES_up': self.data_file_muon,
+            'JES_down': self.data_file_muon
+        }
+        self.data_muon_category_templates_trees = self.data_file_muon
 
-        # self.data_muon_category_templates = {
-        #     'central': self.data_file_muon,
-        #     'JES_up': self.data_file_muon,
-        #     'JES_down': self.data_file_muon
-        # }
-        # self.data_muon_category_templates_trees = self.data_file_muon
+        self.data_electron_category_templates = {
+            'central': self.data_file_electron,
+            'JES_up': self.data_file_electron,
+            'JES_down': self.data_file_electron,
+        }
+        self.data_electron_category_templates_trees = self.data_file_electron
 
-        # self.data_electron_category_templates = {
-        #     'central': self.data_file_electron,
-        #     'JES_up': self.data_file_electron,
-        #     'JES_down': self.data_file_electron,
-        # }
-        # self.data_electron_category_templates_trees = self.data_file_electron
 
         # Unfolding MC Different Generator Samples
         self.unfolding_powheg_pythia8_raw = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV.root' % self.centre_of_mass_energy
@@ -554,22 +535,21 @@ class XSectionConfig():
 
         self.unfolding_pdfweights = {index : path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_pdfWeight_%d.root' % (self.centre_of_mass_energy, index) for index in range( 0, 100 )}
 
+        # Used in 01
         self.tree_path = {
             'electron' : 'TTbar_plus_X_analysis/EPlusJets/Ref selection/FitVariables',
             'muon' : 'TTbar_plus_X_analysis/MuPlusJets/Ref selection/FitVariables',
         }
-
         self.qcd_control_region = {
-        'electron'  : 'QCDConversions',
-        'muon'      : 'QCD non iso mu+jets 1p5to3',
+            'electron'  : 'QCDConversions',
+            'muon'      : 'QCD non iso mu+jets 1p5to3',
         }
-
         self.qcd_shape_syst_region = {
-        'electron'  : 'QCD non iso e+jets',
-        'muon'      : 'QCD non iso mu+jets 3toInf',
+            'electron'  : 'QCD non iso e+jets',
+            'muon'      : 'QCD non iso mu+jets 3toInf',
         }
 
-
+        # Needed?
         self.variable_path_templates = {
             'MET' : 'TTbar_plus_X_analysis/{channel}/{selection}/FitVariables/MET',
             'HT' : 'TTbar_plus_X_analysis/{channel}/{selection}/FitVariables/HT',
@@ -585,9 +565,9 @@ class XSectionConfig():
             'abs_bjets_eta': 'TTbar_plus_X_analysis/{channel}/{selection}/Jets/abs(bjet_eta)',
         }
 
+        # Needed?
         self.electron_control_region = 'QCDConversions'
         self.electron_control_region_systematic = 'QCD non iso e+jets'
-
         self.muon_control_region = 'QCD non iso mu+jets 1p5to3'
         self.muon_control_region_systematic = 'QCD non iso mu+jets 3toInf'
 
@@ -595,6 +575,7 @@ class XSectionConfig():
 
         self.luminosity_scale = self.new_luminosity / self.luminosity
 
+        # Needed?
         # structure
         # { summary_name : [(Electron_down, Electron_up)), (TTJets_hadronisation, TTJets_hadronisation)
         self.typical_systematics_summary = {
