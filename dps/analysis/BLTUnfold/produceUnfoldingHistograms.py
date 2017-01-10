@@ -28,7 +28,15 @@ def calculateTopEtaWeight( lepTopRap, hadTopRap, whichWayToWeight = 1):
     else :
         return 1
 
-def calculateTopPtWeight( lepTopPt, hadTopPt ):
+ def calculateTopPtWeight( lepTopPt, hadTopPt, whichWayToWeight = 1 ):
+    if whichWayToWeight == -1 :
+        return max ( (-0.001 * lepTopPt + 1.1 ) * (-0.001 * hadTopPt + 1.1), 0.1 )
+    elif whichWayToWeight == 1 :
+        return max ( (0.001 * lepTopPt + 0.9 ) * (0.001 * hadTopPt + 0.9), 0.1 )
+    else :
+        return 1
+
+def calculateTopPtSystematicWeight( lepTopPt, hadTopPt ):
     '''
     Calculating the top pt weight
          ______________            A + B.Pt
@@ -36,15 +44,14 @@ def calculateTopPtWeight( lepTopPt, hadTopPt ):
 
     A = 0.0615
     B = -0.0005
-    '''
-    ptWeight = 1
-    A = 0.0615
-    B = -0.0005 
-    sf_lept = exp(A+(B*lepTopPt))
-    sf_hadt = exp(A+(B*hadTopPt))
-    ptWeight = sqrt(sf_hadt*sf_lept)
-    return ptWeight
-
+    '''     
+    lepTopWeight = ptWeight( lepTopPt )
+    hadTopWeight = ptWeight( hadTopPt )
+    return sqrt( lepTopWeight * hadTopWeight )
+ 
+def ptWeight( pt ):
+    return exp( 0.0615 - 0.0005 * pt ) 
+ 
 
 def getFileName( com, sample, measurementConfig ) :
 
@@ -56,8 +63,14 @@ def getFileName( com, sample, measurementConfig ) :
             'madgraph'          : measurementConfig.ttbar_madgraph_trees,
             'powhegherwigpp'    : measurementConfig.ttbar_powhegherwigpp_trees,
 
-            'scaleup'           : measurementConfig.ttbar_scaleup_trees,
-            'scaledown'         : measurementConfig.ttbar_scaledown_trees,
+
+            'ueup'              : measurementConfig.ttbar_ueup_trees,
+            'uedown'            : measurementConfig.ttbar_uedown_trees,
+            'isrup'             : measurementConfig.ttbar_isrup_trees,
+            'isrdown'           : measurementConfig.ttbar_isrdown_trees,
+            'fsrup'             : measurementConfig.ttbar_fsrup_trees,
+            'fsrdown'           : measurementConfig.ttbar_fsrdown_trees,
+
             'massdown'          : measurementConfig.ttbar_mtop1695_trees,
             'massup'            : measurementConfig.ttbar_mtop1755_trees,
 
@@ -84,6 +97,9 @@ def getFileName( com, sample, measurementConfig ) :
             'TauEnDown'         : measurementConfig.ttbar_trees['central'],
             'UnclusteredEnUp'   : measurementConfig.ttbar_trees['central'],
             'UnclusteredEnDown' : measurementConfig.ttbar_trees['central'],
+
+            'topPtSystematic'   : measurementConfig.ttbar_trees['central'],
+
         },
     }
 
@@ -174,7 +190,6 @@ def main():
 
     pdfWeight    = args.pdfWeight
     muFmuRWeight = args.muFmuRWeight
-    alphaSWeight = args.alphaSWeight
 
     # Output file name
     outputFileName = 'crap.root'
@@ -190,10 +205,6 @@ def main():
             outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric_withTopEtaReweighting_down.root' % energySuffix
     elif args.applyTopPtReweighting:
         outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric_withTopPtReweighting.root' % energySuffix
-    elif alphaSWeight == 0:
-        outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric_alphaSDown.root' % ( energySuffix )
-    elif alphaSWeight == 1:
-        outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric_alphaSUp.root' % ( energySuffix )
     elif muFmuRWeight == 1:
         outputFileName = outputFileDir+'/unfolding_TTJets_%s_asymmetric_1muR2muF.root' % ( energySuffix )
     elif muFmuRWeight == 2:
@@ -375,7 +386,7 @@ def main():
                 branch = event.__getattr__
                 n+=1
                 if not n%100000: print 'Processing event %.0f Progress : %.2g %%' % ( n, float(n)/nEntries*100 )
-                if n == 1000: break
+                # if n == 100000: break
                 # # #
                 # # # Weights and selection
                 # # #
@@ -398,7 +409,7 @@ def main():
                 if args.sample == 'leptonup':
                     leptonWeight = event.LeptonEfficiencyCorrectionUp
                 elif args.sample == 'leptondown':
-                    leptonWeight == event.LeptonEfficiencyCorrectionDown
+                    leptonWeight = event.LeptonEfficiencyCorrectionDown
 
                 # B Jet Weight
                 bjetWeight = event.BJetWeight
@@ -411,11 +422,17 @@ def main():
                 elif args.sample == "lightjetdown":
                     bjetWeight = event.LightJetDownWeight
 
+                # Top pt systematic weight
+                topPtSystematicWeight = 1
+                if args.sample == 'topPtSystematic':
+                    topPtSystematicWeight = calculateTopPtSystematicWeight( branch('lepTopPt_parton'), branch('hadTopPt_parton'))
+
                 # Offline level weights
                 offlineWeight = event.EventWeight * measurement_config.luminosity_scale
                 offlineWeight *= pileupWeight
                 offlineWeight *= bjetWeight
-                offlineWeight *= leptonWeight
+                # offlineWeight *= leptonWeight
+                offlineWeight *= topPtSystematicWeight
 
                 # Generator weight
                 # Scale up/down, pdf
@@ -429,13 +446,8 @@ def main():
                     offlineWeight *= branch('muFmuRWeight_%i' % muFmuRWeight)
                     pass
 
-                if alphaSWeight >= 0:
-                    genWeight *= branch('alphaSWeight_%i' % alphaSWeight)
-                    offlineWeight *= branch('alphaSWeight_%i' % alphaSWeight)
-                    pass
-
-                if args.applyTopPtReweighting:
-                    ptWeight = calculateTopPtWeight( branch('lepTopPt_parton'), branch('hadTopPt_parton'))
+                if args.applyTopPtReweighting != 0:
+                    ptWeight = calculateTopPtWeight( branch('lepTopPt_parton'), branch('hadTopPt_parton'), args.applyTopPtReweighting)
                     offlineWeight *= ptWeight
                     genWeight *= ptWeight
                 
