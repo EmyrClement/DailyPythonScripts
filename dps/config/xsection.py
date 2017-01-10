@@ -209,6 +209,7 @@ class XSectionConfig():
             # Generator Uncertainties
             'TTJets_mass'               : ['TTJets_massup', 'TTJets_massdown'],
             'TTJets_hadronisation'      : ['TTJets_hadronisation', 'TTJets_hadronisation'],
+            'TTJets_topPt'              : ['TTJets_topPt', 'TTJets_topPt'],
             'TTJets_ue'               : ['TTJets_ueup', 'TTJets_uedown'],
             'TTJets_envelope'           : ['TTJets_factorisationup', 'TTJets_factorisationdown',
                                             'TTJets_renormalisationup', 'TTJets_renormalisationdown',
@@ -260,6 +261,7 @@ class XSectionConfig():
             'scaleup', 'scaledown',
             'massup', 'massdown',
             'hadronisation',
+            'topPt',
             'NLOgenerator',
             'factorisationup', 'factorisationdown', 
             'renormalisationup', 'renormalisationdown', 
@@ -403,6 +405,8 @@ class XSectionConfig():
 
         self.unfolding_ptreweight_up = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_withTopPtReweighting_up.root' % self.centre_of_mass_energy
         self.unfolding_ptreweight_down = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_withTopPtReweighting_down.root' % self.centre_of_mass_energy
+
+        self.unfolding_topPtSystematic = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_topPtSystematic_asymmetric.root' % self.centre_of_mass_energy
 
         self.unfolding_renormalisation_down = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_05muR1muF.root' % self.centre_of_mass_energy
         self.unfolding_renormalisation_up = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_2muR1muF.root' % self.centre_of_mass_energy
