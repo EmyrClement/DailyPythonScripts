@@ -21,6 +21,10 @@ jobs = [
         '--centreOfMassEnergy 13 --muFmuRWeight 6',
         '--centreOfMassEnergy 13 --muFmuRWeight 8',
 
+        # Alpha s weight
+        '--centreOfMassEnergy 13 --alphaSWeight 0',
+        '--centreOfMassEnergy 13 --alphaSWeight 1',
+
         # # # Top mass
         '--centreOfMassEnergy 13 -s massup',
         '--centreOfMassEnergy 13 -s massdown',
