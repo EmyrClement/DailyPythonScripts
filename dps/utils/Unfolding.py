@@ -56,7 +56,11 @@ class Unfolding:
                                                    TUnfold.kRegModeCurvature,
                                                    )
                 self.unfoldObject.SetInput(self.data, 1.0)
-
+                print list(self.data.y())
+                # data = asrootpy( self.unfoldObject.GetInput('Input') )
+                print self.data.GetBinContent(1), self.unfoldObject.GetInput('Input').GetBinContent(1)
+                # for bin in range(0,data.GetNbinsX()):
+                #     print bin, data.GetBinContent(bin), self.data.GetBinContent(bin)
                 # self.unfoldObject.ScanLcurve( 30, 0, 0 )
 
     def unfold(self):
@@ -69,7 +73,12 @@ class Unfolding:
 
         # remove unfold reports (faster)
         if self.method == 'TUnfold':
+            print 'Tau',self.tau
+            print 'Data being unfolded :',list( self.data.y() ),self.data.GetBinContent(1)
+            print list( asrootpy( self.unfoldObject.GetInput('Input') ).y() )
+            # print 'Prob matrix :',list( asrootpy( self.unfoldObject.GetProbabilityMatrix('Prob') ).z() ),'\n'
             self.unfoldObject.DoUnfold(self.tau)
+            print list( asrootpy( self.unfoldObject.GetOutput('Output') ).y() )
             self.unfolded_data = asrootpy(
                 self.unfoldObject.GetOutput('Unfolded'))
 #         else:
@@ -181,6 +190,7 @@ def get_unfold_histogram_tuple(
     visiblePS=False,
     scale=1,
 ):
+
     h_truth = None
     h_measured = None
     h_response = None

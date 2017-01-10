@@ -8,6 +8,7 @@ from rootpy.io import File
 from dps.utils.Unfolding import Unfolding, get_unfold_histogram_tuple
 from dps.config.xsection import XSectionConfig
 from rootpy import asrootpy
+import ROOT as r
 
 def main():
 
@@ -18,13 +19,14 @@ def main():
     file_for_unfolding = File(config.unfolding_central, 'read')
     powheg_herwig_file = File(config.unfolding_powheg_herwig, 'read')
 
-    for channel in ['combined', 'muon', 'electron']:
+    # for channel in ['combined', 'muon', 'electron']:
+    for channel in ['muon']:
 
-        for variable in config.variables:
-        # for variable in ['MET']:
+        # for variable in config.variables:
+        for variable in ['HT']:
         
             print variable
-
+            data = [1924.4735578536986, 25682.269956064225, 29227.654213821887, 32069.328189885615, 32646.642462164164, 28402.32725772858, 27363.846755504605, 21846.973779034615, 17554.106704711914, 13811.932735794782, 10980.524793356657, 8244.573209935426, 7173.377163338661, 4955.374866575003, 3685.5585090100767, 2837.144918859005, 2359.2253744602203, 1603.8065546751022, 1343.20689496994, 976.8266459226609, 812.7188339412212, 477.89672139286995, 314.6792103230953, 304.0482513427734, 699.5895061969758, 205.6797859668732]
             # tau_value = get_tau_value(config, channel, variable)
             # tau_value = 0.000228338590921
             tau_value = 0.000
@@ -41,10 +43,10 @@ def main():
                 visiblePS=True,
             )
 
-            # measured = asrootpy(h_response.ProjectionX('px',1))
-            # print 'Measured from response :',list(measured.y())
-            # truth = asrootpy(h_response.ProjectionY())
-            # print 'Truth from response :',list(truth.y())
+            measured = asrootpy(h_response.ProjectionX('px',1))
+            print 'Measured from response :',list(measured.rebin(2).y())[-2]
+            truth = asrootpy(h_response.ProjectionY())
+            print 'Truth from response :',list(truth.y())[-1]
 
             h_truth_ph, h_measured_ph, h_response_ph, h_fakes_ph = get_unfold_histogram_tuple(
                 inputfile=powheg_herwig_file,
@@ -58,18 +60,30 @@ def main():
                 visiblePS=True,
             )
 
-            measured = asrootpy(h_response_ph.ProjectionX('px',1))
+            measured = asrootpy(h_response.ProjectionX('px',1))
             # print 'Measured from response :',list(measured.y())
-            measured.SetBinContent(0,0)
-            truth = asrootpy(h_response_ph.ProjectionY())
+            # measured.SetBinContent(0,0)
+            truth = asrootpy(h_response.ProjectionY())
             # print 'Truth from response :',list(truth.y())
             # print 'Truth underflow : ',truth.GetBinContent(0),truth.GetBinContent(truth.GetNbinsX()+1)
 
-            # Unfold
-            unfolding = Unfolding( measured,
-                truth, measured, h_response, None,
-                method=method, tau=tau_value)
+            # measured.SetBinContent(1,0)
+            # for i in range(0, len(data)):
+            #     measured.SetBinContent(i+1, data[i])
 
+            # for i in range(0, len(data)):
+            #     new_measured = 
+            
+            # Unfold
+            print 'Tau :',tau_value
+            print 'Measured :',list( measured.y() )
+            print measured.GetNbinsX()
+
+            unfolding = Unfolding( measured,
+                None, None, h_response, None,
+                method=method, tau=tau_value)
+            input = asrootpy( unfolding.unfoldObject.GetInput('Input') )
+            print input.GetBinContent(0), input.GetBinContent(1)
             # unfolded_data = unfolding.closureTest()
 
             # print 'Measured :',list( h_measured.y() )
@@ -86,13 +100,21 @@ def main():
             refolded_results = unfolding.refold()
             refolded_results.rebin(2)
             measured.rebin(2)
-            print 'Refolded :',list( refolded_results.y() )
-            print 'Measured :',list( measured.y() )
 
+            print 'Unfolded :',list( unfolded_results.y() )
+            print len(list( unfolded_results.y() ))
+            print 'Refolded :',list( refolded_results.y() )[-2]
+
+            # print 'Response :',list( h_response.z() )
+
+            chi2 = 0
             # for i in range(1,refolded_results.GetNbinsX()):
-            #     print i,measured.GetBinContent(i),measured.GetBinError(i),abs( measured.GetBinContent(i) - refolded_results.GetBinContent(i) )
+            #     print i,measured.GetBinContent(i),measured.GetBinError(i),abs( measured.GetBinContent(i) - refolded_results.GetBinContent(i) )/measured.GetBinError(i)
+            #     chi2 += ( measured.GetBinContent(i) - refolded_results.GetBinContent(i) ) ** 2 / measured.GetBinError(i) ** 2
 
+            # print r.TMath.Prob( chi2, len( list( measured.y() ) ))
             pValue = measured.Chi2Test(refolded_results)
+
             print pValue,1-pValue
             # print unfolding.unfoldObject.GetTau()
 

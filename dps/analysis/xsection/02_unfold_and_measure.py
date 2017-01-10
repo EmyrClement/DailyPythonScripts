@@ -5,6 +5,8 @@ from optparse import OptionParser
 # rootpy
 from rootpy.io import File
 from rootpy.plotting import Hist2D
+from rootpy import asrootpy
+
 # DailyPythonScripts
 import dps.config.unfold as unfoldCfg
 from dps.config.variable_binning import bin_widths, bin_widths_visiblePS, reco_bin_edges_full, reco_bin_edges_vis
@@ -38,6 +40,9 @@ def unfold_results( results, category, channel, tau_value, h_truth, h_measured, 
         unfoldCfg.error_treatment = options.error_treatment
 
     h_unfolded_data = unfolding.unfold()
+    if channel == 'muon':
+        print 'Input in 02:', list( asrootpy( unfolding.unfoldObject.GetInput('Input') ).y() )
+        print 'Unfolded in 02:',list( h_unfolded_data.y() )
 
     del unfolding
     return hist_to_value_error_tuplelist( h_unfolded_data ), hist_to_value_error_tuplelist( h_data )

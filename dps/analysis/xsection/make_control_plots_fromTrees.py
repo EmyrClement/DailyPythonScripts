@@ -417,8 +417,8 @@ if __name__ == '__main__':
     selection = 'Ref selection' # also 'Ref selection NoBSelection'
     for channel, label in {
                             'electron' : 'EPlusJets', 
-                            'muon' : 'MuPlusJets',
-                            'combined' : 'COMBINED'
+                            # 'muon' : 'MuPlusJets',
+                            # 'combined' : 'COMBINED'
                             }.iteritems() : 
         b_tag_bin = '2orMoreBtags'
 

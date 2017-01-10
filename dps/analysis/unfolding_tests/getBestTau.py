@@ -129,6 +129,7 @@ class TauFinding(object):
                 self.h_data = value_error_tuplelist_to_hist(json_input[data_key], edges)
         else:
             print 'Unkown file extension', data_file.split('.')[-1]
+        print list( self.h_data.y() )
 
             
     def get_histograms( self ):
@@ -145,12 +146,13 @@ def main():
         # Initialise the TauFinding class
         regularisation_settings = TauFinding( input_values )
         # Set additional elemtents
-        regularisation_settings.taus_to_test = get_tau_list(args.n_ticks_in_log)
-
+        # regularisation_settings.taus_to_test = get_tau_list(args.n_ticks_in_log)
+        # regularisation_settings.taus_to_test = [0,1E-16,1E-8,1]
+        regularisation_settings.taus_to_test = [0]
         variable = regularisation_settings.variable
         channel = regularisation_settings.channel
         com = regularisation_settings.centre_of_mass_energy
-        if 'muon' not in channel : continue
+        # if 'muon' not in channel : continue
         print 'Variable = {0}, channel = {1}, sqrt(s) = {2}'.format(variable, channel, com)
 
         if args.run_measured_as_data:
@@ -164,28 +166,30 @@ def main():
                 h_data_varied = value_error_tuplelist_to_hist(h_data_varied, reco_bin_edges_vis[variable])
                 regularisation_settings.h_data = h_data_varied
                 df_chi2_smeared = get_chi2s_of_tau_range(regularisation_settings, args, unfold_test=True)
-                print df_chi2_smeared
+                # print df_chi2_smeared
             # No point in trying to find best tau if it is given as 0...
             sys.exit()
         
         # Find the corresponding Chi2 and write to file
         df_chi2 = get_chi2s_of_tau_range(regularisation_settings, args)
-        print df_chi2
+        # print df_chi2
 
-        # Have the dataframes now - albeit read to a file
-        # Read in each one corresponding to their channel
-        # Find the best tau and print to screen
-        for channel in ['electron', 'muon', 'combined']:
-            chi2_cut = 0.005
-            path = regularisation_settings.outpath+'tbl_'+channel+'_tauscan.txt'
-            df_chi2 = get_df_from_file(path)
-            if df_chi2 is None: continue
-            print '\n', "1 - P(Chi2|NDF)", '\n', df_chi2, '\n'
+    # Have the dataframes now - albeit read to a file
+    # Read in each one corresponding to their channel
+    # Find the best tau and print to screen
+    # for channel in ['electron', 'muon', 'combined']:
+    for channel in ['muon']:
+        chi2_cut = 0.005
+        path = regularisation_settings.outpath+'tbl_'+channel+'_tauscan.txt'
+        df_chi2 = None
+        df_chi2 = get_df_from_file(path)
+        if df_chi2 is None: continue
+        # print '\n', "1 - P(Chi2|NDF)", '\n', df_chi2, '\n'
 
-            # cutoff to be changed to 0.001 when able to
-            best_taus = interpolate_tau(chi2_cut, df_chi2)
-            chi2_to_plots(df_chi2, regularisation_settings, chi2_cut, channel)
-            print_results_to_screen(best_taus, channel)
+        # cutoff to be changed to 0.001 when able to
+        best_taus = interpolate_tau(chi2_cut, df_chi2)
+        chi2_to_plots(df_chi2, regularisation_settings, chi2_cut, channel)
+        print_results_to_screen(best_taus, channel)
     return
 
 
@@ -263,6 +267,7 @@ def get_chi2s_of_tau_range( regularisation_settings, args, unfold_test=False ):
     h_truth, h_response, h_measured, h_data, h_fakes = regularisation_settings.get_histograms()
     if not args.run_measured_as_data : 
         h_data = removeFakes( h_measured, h_fakes, h_data )
+        print 'Data after removing fakes : ',list(h_data.y())
     variable = regularisation_settings.variable
     taus = regularisation_settings.taus_to_test
     chi2_ndf = []
@@ -271,13 +276,15 @@ def get_chi2s_of_tau_range( regularisation_settings, args, unfold_test=False ):
 
         unfolding = Unfolding( 
             h_data, 
-            h_truth, 
-            h_measured, 
+            None, 
+            None, 
             h_response,
             fakes = None,#Fakes or no?
             method = 'TUnfold', 
             tau = tau
         )
+        print 'Tau :',tau
+        print 'Measured :',list( unfolding.data.y())[-2]
         # Cannot refold without first unfolding
         h_unfolded_data = unfolding.unfold()
         h_refolded_data = unfolding.refold()
@@ -303,8 +310,21 @@ def get_chi2s_of_tau_range( regularisation_settings, args, unfold_test=False ):
             # print("Refolded Data")
             # print (hist_to_value_error_tuplelist(regularisation_settings.h_refolded))
 
+
+        print 'Unfolded :',list( h_unfolded_data.y() )
+        print len(list( h_unfolded_data.y() ))
+        print 'Refolded :',list( unfolding.refolded_data.y())[-2]
+        print 'Truth from response : ', list( asrootpy( h_response.ProjectionY()).y() )[-1]
+        print 'Measured from response : ', list( asrootpy( h_response.ProjectionX('px',1)).rebin(2).y() )[-2]
+        # print 'Response :',list( h_response.z() )
+
         chi2 = unfolding.getUnfoldRefoldChi2()
-        prob = TMath.Prob( chi2, ndf ) 
+        prob = TMath.Prob( chi2, ndf-1 )
+        print 'Original : ',tau,chi2,prob
+        # chi2 = unfolding.data.Chi2Test(unfolding.refolded_data, 'CHI2') 
+        # prob = unfolding.data.Chi2Test(unfolding.refolded_data,'UU')
+        # print 'New : ',tau,chi2,prob 
+        # print tau, chi2, prob, 1-prob
         chi2_ndf.append(1-prob)
         # print( tau, chi2, prob, 1-prob )
 
@@ -396,7 +416,7 @@ def get_df_from_file(p):
         with open(p,'r') as f:
             df = pd.read_table(f, delim_whitespace=True)
     else:
-        print "Cannot find path : ", p
+        print "Cannot find path :", p
     return df
 
 def chi2_to_plots(df_chi2, regularisation_settings, chi2_cut, channel):
@@ -409,7 +429,7 @@ def chi2_to_plots(df_chi2, regularisation_settings, chi2_cut, channel):
 
     fig1 = plt.figure()
     ax1 = fig1.add_subplot(1, 1, 1)
-    ax1.set_xlim([pow(10,-6), 1])
+    ax1.set_xlim([pow(10,-16), 1])
     ax1.set_ylim([pow(10,-6), 1])
     for var in df_chi2.columns:
         if var == 'tau': continue
@@ -452,7 +472,7 @@ def interpolate_tau(cutoff, df_chi2):
     best_tau = {}
     for variable in df_chi2.columns:
         if variable == 'tau': continue
-
+        print variable
         i=0
         for chisq in df_chi2[variable]:
             if chisq > cutoff:
@@ -463,13 +483,13 @@ def interpolate_tau(cutoff, df_chi2):
         if chisq > cutoff:
             print "{var} exceeds required cut".format(var=variable)
             # last i becomes out of range
-            best_tau[variable] = df_chi2['tau'][i-1]
+            best_tau[variable] = df_chi2[variable][i-1]
         else:
             chisq_lo = df_chi2[variable][i+1]
             chisq_hi = df_chi2[variable][i]
             ratio = (cutoff - chisq_lo) / (chisq_hi - chisq_lo)
-            tau_lo = df_chi2['tau'][i+1]
-            tau_hi = df_chi2['tau'][i]
+            tau_lo = df_chi2[variable][i+1]
+            tau_hi = df_chi2[variable][i]
             tau = tau_lo + ratio*(tau_hi - tau_lo)
             best_tau[variable] = tau
     return best_tau
