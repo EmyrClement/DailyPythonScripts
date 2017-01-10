@@ -79,8 +79,8 @@ def get_unfolded_normalisation( TTJet_fit_results, category, channel, tau_value,
                              ttbar_theory_systematic_prefix + 'renormalisationup'  	:  file_for_renormalisationup,
                              ttbar_theory_systematic_prefix + 'combineddown'     	:  file_for_combineddown,
                              ttbar_theory_systematic_prefix + 'combinedup'          :  file_for_combinedup,
-                             # ttbar_theory_systematic_prefix + 'alphaSdown'			:  file_for_alphaSdown,
-                             # ttbar_theory_systematic_prefix + 'alphaSup'   			:  file_for_alphaSup,
+                             ttbar_theory_systematic_prefix + 'alphaSdown'			:  file_for_alphaSdown,
+                             ttbar_theory_systematic_prefix + 'alphaSup'   			:  file_for_alphaSup,
 
                              'JES_down'        :  file_for_jesdown,
                              'JES_up'        :  file_for_jesup,
@@ -540,8 +540,9 @@ if __name__ == '__main__':
     file_for_factorisationup = File( measurement_config.unfolding_factorisation_up, 'read' )
     file_for_combineddown = File( measurement_config.unfolding_combined_down, 'read' )
     file_for_combinedup = File( measurement_config.unfolding_combined_up, 'read' )
-    # file_for_alphaSdown = File( measurement_config.unfolding_alphaS_down, 'read' )
-    # file_for_alphaSup = File( measurement_config.unfolding_alphaS_up, 'read' )
+    ###
+    file_for_alphaSdown = File( measurement_config.unfolding_alphaS_down, 'read' )
+    file_for_alphaSup = File( measurement_config.unfolding_alphaS_up, 'read' )
     ###
     file_for_topPtSystematic = File( measurement_config.unfolding_topPtSystematic, 'read' )
     ###

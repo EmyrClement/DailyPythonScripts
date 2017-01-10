@@ -217,7 +217,7 @@ class XSectionConfig():
                                             'TTJets_fsrup', 'TTJets_fsrdown',
                                             'TTJets_isrup', 'TTJets_isrdown',
                                             ],
-
+            'TTJets_alphaS'             : ['TTJets_alphaSup', 'TTJets_alphaSdown'],
             # Event Reweighting
             'PileUp'                    : ['PileUp_up', 'PileUp_down'],
             'JES'                       : ['JES_up', 'JES_down'],
@@ -260,6 +260,7 @@ class XSectionConfig():
         self.generator_systematics = [ 
             'scaleup', 'scaledown',
             'massup', 'massdown',
+            'alphaSup', 'alphaSdown',
             'hadronisation',
             'topPt',
             'NLOgenerator',
@@ -414,6 +415,9 @@ class XSectionConfig():
         self.unfolding_factorisation_up = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_1muR2muF.root' % self.centre_of_mass_energy
         self.unfolding_combined_down = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_05muR05muF.root' % self.centre_of_mass_energy
         self.unfolding_combined_up = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_2muR2muF.root' % self.centre_of_mass_energy
+
+        self.unfolding_alphaS_down = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_alphaS_down.root' % self.centre_of_mass_energy
+        self.unfolding_alphaS_up = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_asymmetric_alphaS_up.root' % self.centre_of_mass_energy
 
         self.unfolding_fsr_down = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_fsrup_asymmetric.root' % self.centre_of_mass_energy
         self.unfolding_fsr_up = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_fsrup_asymmetric.root' % self.centre_of_mass_energy
