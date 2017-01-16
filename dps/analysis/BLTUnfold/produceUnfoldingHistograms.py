@@ -396,7 +396,8 @@ def main():
                 offlineWeight *= bjetWeight
                 # offlineWeight *= leptonWeight
                 offlineWeight *= topPtSystematicWeight
-
+                genWeight *= topPtSystematicWeight
+                
                 # Generator weight
                 # Scale up/down, pdf
                 if pdfWeight >= 0:
@@ -419,11 +420,6 @@ def main():
                     genWeight *= branch('matchingWeight_%i' % matchingWeight)
                     offlineWeight *= branch('matchingWeight_%i' % matchingWeight)
                     pass
-
-                if options.applyTopPtReweighting != 0:
-                    ptWeight = calculateTopPtWeight( branch('lepTopPt_parton'), branch('hadTopPt_parton'), options.applyTopPtReweighting)
-                    offlineWeight *= ptWeight
-                    genWeight *= ptWeight
 
                 if options.applyTopPtReweighting != 0:
                     ptWeight = calculateTopPtWeight( branch('lepTopPt_parton'), branch('hadTopPt_parton'), options.applyTopPtReweighting)
