@@ -561,7 +561,7 @@ class XSectionConfig():
         self.ttbar_xsection = 831.76  # pb
 
         self.rate_changing_systematics = {#TODO check where this is used
-            'luminosity': 0.027,  # Best guess for 13 TeV 4.8->2.7
+            'luminosity': 0.062,  # Best guess for 13 TeV 4.8->2.7
             'SingleTop_cross_section': 0.05,  # Currently same as 8 TeV
             # 'TTJet_cross_section': 0.043, # Currently same as 8 TeV
             'V+Jets_cross_section': 0.5,
