@@ -78,6 +78,13 @@ control_plots_bins = {
   'HT' : [i * 50  for i in range ( 0, 21 )],
   'ST' : [i * 50  for i in range ( 2, 25 )],
   'sigmaietaieta' : [i * 0.002  for i in range ( 0, 20 )],
+
+# Long x axis, good for log y scale
+#  'ElectronPt' : [i * 30 for i in range ( 0, 35 )],
+#  'MET' : [i * 50  for i in range ( 0, 25 )],
+#  'WPT' : [i * 30  for i in range ( 0, 45 )],
+#  'HT' : [i * 60  for i in range ( 0, 70 )],
+#  'ST' : [i * 90  for i in range ( 1, 50 )],
 }
 
 # should we want separate binning for different centre of mass energies
