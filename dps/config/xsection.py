@@ -289,7 +289,7 @@ class XSectionConfig():
                 affected_samples = ['SingleTop']
             if 'TTJet' in systematic:
                 affected_samples = ['TTJet'] 
-            if 'VJets' in systematic:
+            if 'V+Jets' in systematic:
                 affected_samples = ['V+Jets']
             if 'QCD' in systematic:
                 affected_samples = ['QCD']
