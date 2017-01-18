@@ -187,10 +187,6 @@ class Measurement():
         histograms = self.histograms
         self.__background_subtraction(histograms)
 
-        # next, let's round all numbers (they are event numbers after all)
-        for sample, values in self.normalisation.items():
-            new_values = [(round(v, 1), round(e, 1)) for v, e in values]
-            self.normalisation[sample] = new_values
         self.is_normalised = True
         return
 
