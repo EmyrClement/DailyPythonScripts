@@ -92,6 +92,7 @@ def getFileName( com, sample, measurementConfig ) :
     fileNames = {
         '13TeV' : {
             'central'           : measurementConfig.ttbar_trees,
+            # 'central'           : '/storage/ec6821/NTupleProd/new/NTupleProduction/workspace/results/TTJets_PowhegPythia8_central_atOutput.root',
             'central_70pc'           : measurementConfig.ttbar_trees,
             'central_30pc'           : measurementConfig.ttbar_trees,
 
@@ -343,7 +344,7 @@ def main():
     filenames = glob.glob( file_name )
     for f in filenames:
         tree.Add(f)
-
+    # tree.Add(file_name)
     with root_open( outputFileName, 'recreate') as out:
             nEntries = tree.GetEntries()
             print 'Number of entries:',nEntries
@@ -507,6 +508,7 @@ def main():
             print("Initialisation of Histograms Complete")
 
             # Counters for studying phase space
+            nPassGenSelection = 0
             nVis            = {c.channelName : 0 for c in channels}
             nVisNotOffline  = {c.channelName : 0 for c in channels}
             nOffline        = {c.channelName : 0 for c in channels}
@@ -535,8 +537,8 @@ def main():
             for event in tree:
                 branch = event.__getattr__
                 n+=1
-                if not n%100000: print 'Processing event %.0f Progress : %.2g %%' % ( n, float(n)/nEntries*100 )
-                # if n > 100000: break
+                # if not n%100000: print 'Processing event %.0f Progress : %.2g %%' % ( n, float(n)/nEntries*100 )
+                # if n > 1000: break
 
                 if maxEvents > 0 and n > maxEvents: break
 
@@ -697,6 +699,9 @@ def main():
                         if offlineSelection:
                             nOfflineSL[channel.channelName] += genWeight
                     if genSelectionVis:
+                        # print
+                        print int(event.run),int(event.event),int(event.lumi)
+                        nPassGenSelection += 1
                         nVis[channel.channelName] += genWeight
                         if not offlineSelection:
                             nVisNotOffline[channel.channelName] += genWeight
@@ -743,6 +748,7 @@ def main():
                                 histogramsToFill['truth'].Fill( genVariable_particle, genWeight)
                             if genSelectionVis:
                                 filledTruth = True
+                                # print variable,genVariable_particle
                                 histogramsToFill['truthVis'].Fill( genVariable_particle, genWeight)
 
                             if offlineSelection:
@@ -803,6 +809,7 @@ def main():
                     if nOffline[channel.channelName] != 0 : 
                         # Fill phase space info
                         h = histograms[variable][channel.channelName]['phaseSpaceInfoHist']
+                        print 'Sum of weights, gen selection : ',nVis[channel.channelName]
                         h.SetBinContent(1, nVisNotOffline[channel.channelName] / nVis[channel.channelName])
                         # h.GetXaxis().SetBinLabel(1, "nVisNotOffline/nVis")
 
@@ -830,7 +837,7 @@ def main():
                             residuals[variable][channel.channelName][r].Write()
 
 
-
+            print 'N events passing gen selection : ',nPassGenSelection
     with root_open( outputFileName, 'update') as out:
         # Done all channels, now combine the two channels, and output to the same file
         for path, dirs, objects in out.walk():
