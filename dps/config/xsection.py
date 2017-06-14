@@ -316,6 +316,14 @@ class XSectionConfig():
             # 'Top_eta_reweight'          : ['Top_eta_reweight_up', 'Top_eta_reweight_down'],
         }
 
+        self.mcTheoryUncertainties = {
+            'TTJets_mass'               : ['massup', 'massdown' ],
+            'TTJets_scale'              : ['fsrup', 'fsrdown',
+                                            'isrup', 'isrdown',
+                                            ],
+            'TTJets_ue'               : ['ueup', 'uedown' ],
+        }
+
         self.systematic_group_bkg = [
             'V+Jets_cross_section',
             'SingleTop_cross_section', 
