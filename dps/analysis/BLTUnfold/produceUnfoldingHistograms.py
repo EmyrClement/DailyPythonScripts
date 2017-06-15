@@ -210,6 +210,11 @@ def parse_arguments():
         dest='fineBinned', 
         default=False
     )
+    parser.add_argument('--newPS',
+        action='store_true', 
+        dest='newPS', 
+        default=False
+    )
     args = parser.parse_args()
     return args
 
@@ -312,6 +317,9 @@ def main():
             for variable in bin_edges_vis:
                 if 'Rap' in variable:
                     allVariablesBins['abs_%s' % variable] = [0,bin_edges_vis[variable][-1]]
+                if args.newPS:
+                    if variable in ['HT','ST']:
+                        allVariablesBins[variable][0] = allVariablesBins[variable][0] - 10
 
             recoVariableNames = {}
             genVariable_particle_names = {}
@@ -361,6 +369,8 @@ def main():
                 genVariable_parton_name = None
                 if variable in genBranchNames_particle:
                     genVariable_particle_name = genBranchNames_particle[variable]
+                    if args.newPS and variable in ['HT', 'ST', 'NJets']:
+                        genVariable_particle_name += '_20GeVLastJet'
                 if variable in genBranchNames_parton:
                     genVariable_parton_name = genBranchNames_parton[variable]
 
@@ -379,6 +389,11 @@ def main():
                         outputDirRes = out.mkdir(outputDirResName)
                         outputDirsRes[variable][channel.channelName] = outputDirRes
 
+                    reco_bin_edges_vis_to_use = reco_bin_edges_vis[variable]
+                    if variable in ['HT', 'ST']:
+                        reco_bin_edges_vis_to_use[0] = reco_bin_edges_vis_to_use[0] - 10
+
+                    print 'Variable, binning :',allVariablesBins[variable],reco_bin_edges_vis_to_use[variable]
                     #
                     # Book histograms
                     #
@@ -388,22 +403,22 @@ def main():
                     h['truth']                          = Hist( allVariablesBins[variable], name='truth')
                     h['truthVis']                       = Hist( allVariablesBins[variable], name='truthVis')
                     h['truth_parton']                   = Hist( allVariablesBins[variable], name='truth_parton')                
-                    h['measured']                       = Hist( reco_bin_edges_vis[variable], name='measured')
-                    h['measuredVis']                    = Hist( reco_bin_edges_vis[variable], name='measuredVis')
-                    h['measured_without_fakes']         = Hist( reco_bin_edges_vis[variable], name='measured_without_fakes')
-                    h['measuredVis_without_fakes']      = Hist( reco_bin_edges_vis[variable], name='measuredVis_without_fakes')
-                    h['fake']                           = Hist( reco_bin_edges_vis[variable], name='fake')
-                    h['fakeVis']                        = Hist( reco_bin_edges_vis[variable], name='fakeVis')
+                    h['measured']                       = Hist( reco_bin_edges_vis_to_use[variable], name='measured')
+                    h['measuredVis']                    = Hist( reco_bin_edges_vis_to_use[variable], name='measuredVis')
+                    h['measured_without_fakes']         = Hist( reco_bin_edges_vis_to_use[variable], name='measured_without_fakes')
+                    h['measuredVis_without_fakes']      = Hist( reco_bin_edges_vis_to_use[variable], name='measuredVis_without_fakes')
+                    h['fake']                           = Hist( reco_bin_edges_vis_to_use[variable], name='fake')
+                    h['fakeVis']                        = Hist( reco_bin_edges_vis_to_use[variable], name='fakeVis')
                     # 2D histograms
-                    h['response']                       = Hist2D( reco_bin_edges_vis[variable], allVariablesBins[variable], name='response')
-                    h['response_without_fakes']         = Hist2D( reco_bin_edges_vis[variable], allVariablesBins[variable], name='response_without_fakes')
-                    h['responseVis_without_fakes']      = Hist2D( reco_bin_edges_vis[variable], allVariablesBins[variable], name='responseVis_without_fakes')
-                    h['response_parton']                = Hist2D( reco_bin_edges_vis[variable], allVariablesBins[variable], name='response_parton')
-                    h['response_without_fakes_parton']  = Hist2D( reco_bin_edges_vis[variable], allVariablesBins[variable], name='response_without_fakes_parton')
+                    h['response']                       = Hist2D( reco_bin_edges_vis_to_use[variable], allVariablesBins[variable], name='response')
+                    h['response_without_fakes']         = Hist2D( reco_bin_edges_vis_to_use[variable], allVariablesBins[variable], name='response_without_fakes')
+                    h['responseVis_without_fakes']      = Hist2D( reco_bin_edges_vis_to_use[variable], allVariablesBins[variable], name='responseVis_without_fakes')
+                    h['response_parton']                = Hist2D( reco_bin_edges_vis_to_use[variable], allVariablesBins[variable], name='response_parton')
+                    h['response_without_fakes_parton']  = Hist2D( reco_bin_edges_vis_to_use[variable], allVariablesBins[variable], name='response_without_fakes_parton')
 
                     if args.fineBinned:
                         minVar = trunc( allVariablesBins[variable][0] )
-                        maxVar = trunc( max( tree.GetMaximum(genVariable_particle_names[variable]), tree.GetMaximum( recoVariableNames[variable] ) ) * 1.2 )
+                        maxVar = trunc( max( tree.GetMaximum(genVariable_particle_names[variable]), tree.GetMaximum( reco_bin_edges_vis_to_use[variable] ) ) * 1.2 )
                         nBins = int(maxVar - minVar)
                         if variable is 'lepton_eta' or variable is 'bjets_eta':
                             maxVar = 2.4
@@ -591,9 +606,13 @@ def main():
                     if channel.channelName is 'muPlusJets' :
                         genSelection = event.isSemiLeptonicMuon == 1
                         genSelectionVis = event.passesGenEventSelection == 1 and event.pseudoLepton_pdgId == 13
+                        if args.newPS:
+                            genSelectionVis = event.passesGenEventSelection_20GeVLastJet == 1 and event.pseudoLepton_pdgId == 13
                     elif channel.channelName is 'ePlusJets' :
                         genSelection = event.isSemiLeptonicElectron == 1
                         genSelectionVis = event.passesGenEventSelection == 1 and event.pseudoLepton_pdgId == 11
+                        if args.newPS:
+                            genSelectionVis = event.passesGenEventSelection_20GeVLastJet == 1 and event.pseudoLepton_pdgId == 11
 
                     # Offline level selection
                     offlineSelection = 0
