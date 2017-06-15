@@ -147,14 +147,14 @@ def read_xsection_measurement(options, category):
             norm        = norm,
         )
 
-
+    print (filename)
     measurement = read_tuple_from_file( filename )
 
-    xsection_unfolded = measurement['TTJet_unfolded']
+    xsection_unfolded = measurement['TTJets_unfolded']
 
     if category is 'central':
         theoryUncertaintySources = options['mcTheoryUncertainties']
-        xsection_mc = { 'central' : measurement['powhegPythia8' ]}
+        xsection_mc = { 'central' : measurement['TTJets_powhegPythia8' ]}
         for source in theoryUncertaintySources:
             variations = theoryUncertaintySources[source]
             if source is 'TTJets_scale':
@@ -164,7 +164,7 @@ def read_xsection_measurement(options, category):
                     for i in range(0,len(xsectionWithUncertainty)):
                         xsectionWithUncertainty[i] = xsectionWithUncertainty[i][0]
                     scale_xsections[variation] = xsectionWithUncertainty
-                scale_envelope_lower, scale_envelope_upper = get_scale_envelope(options, scale_xsections, measurement['powhegPythia8' ])
+                scale_envelope_lower, scale_envelope_upper = get_scale_envelope(options, scale_xsections, measurement['TTJets_powhegPythia8' ])
                 xsection_mc[source] = [
                                         scale_envelope_lower,
                                         scale_envelope_upper
@@ -773,9 +773,9 @@ def make_covariance_plot( options, syst_name, matrix, label='Covariance' ):
     plt.tight_layout()
 
     # Output folder of covariance matrices
-    covariance_matrix_output_path = 'plots/covariance_matrices/{phase_space}/{channel}/{variable}/{norm}/'
+    covariance_matrix_output_path = 'plots/covariance_matrices/{phase_space}/{channel}/{norm}/'
     if options['mcUncertainty']:
-        covariance_matrix_output_path = 'plots/covariance_matrices/mcUncertainty/{phase_space}/{channel}/{variable}/{norm}/'
+        covariance_matrix_output_path = 'plots/covariance_matrices/mcUncertainty/{phase_space}/{channel}/{norm}/'
     covariance_matrix_output_path = covariance_matrix_output_path.format(
         channel = channel,
         phase_space = phase_space,
