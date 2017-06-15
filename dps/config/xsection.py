@@ -317,11 +317,22 @@ class XSectionConfig():
         }
 
         self.mcTheoryUncertainties = {
-            'TTJets_mass'               : ['massup', 'massdown' ],
-            'TTJets_scale'              : ['fsrup', 'fsrdown',
-                                            'isrup', 'isrdown',
-                                            ],
-            'TTJets_ue'               : ['ueup', 'uedown' ],
+            'TTJets_mass'               : ['TTJets_massup', 'TTJets_massdown'],
+            # 'TTJets_ue'                 : ['TTJets_ueup', 'TTJets_uedown'],
+            # 'TTJets_topPt'              : ['TTJets_topPt', 'TTJets_topPt'],
+            # 'TTJets_scale'              : ['TTJets_factorisationup', 'TTJets_factorisationdown',
+            #                                 'TTJets_renormalisationup', 'TTJets_renormalisationdown',
+            #                                 'TTJets_combinedup', 'TTJets_combineddown',
+            #                                 'TTJets_fsrup', 'TTJets_fsrdown',
+            #                                 'TTJets_isrup', 'TTJets_isrdown'
+            #                                 ],
+            # 'TTJets_alphaS'             : ['TTJets_alphaSup', 'TTJets_alphaSdown'],
+            # 'TTJets_hdamp'           : ['TTJets_hdampup', 'TTJets_hdampdown'],
+            # 'TTJets_semiLepBr'           : ['TTJets_semiLepBrup', 'TTJets_semiLepBrdown'],
+            # 'TTJets_frag'           : ['TTJets_fragup', 'TTJets_fragdown'],
+            # 'TTJets_petersonFrag'           : ['TTJets_petersonFrag', 'TTJets_petersonFrag'],
+            # 'TTJets_CR_erdOn'           : ['TTJets_erdOn', 'TTJets_erdOn'],
+            # 'TTJets_CR_QCDbased_erdOn'           : ['TTJets_QCDbased_erdOn', 'TTJets_QCDbased_erdOn'],
         }
 
         self.systematic_group_bkg = [
