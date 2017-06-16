@@ -13,6 +13,7 @@ from dps.utils.file_utilities import make_folder_if_not_exists
 from dps.config import CMS
 from dps.config.latex_labels import variables_latex, variables_NonLatex
 from dps.config.xsection import XSectionConfig
+from copy import deepcopy
 measurement_config = XSectionConfig( 13 )
 template = '%.1f fb$^{-1}$ (%d TeV)'
 title = template % ( measurement_config.new_luminosity/1000, measurement_config.centre_of_mass_energy)
@@ -164,15 +165,15 @@ def read_xsection_measurement(options, category):
                     for i in range(0,len(xsectionWithUncertainty)):
                         xsectionWithUncertainty[i] = xsectionWithUncertainty[i][0]
                     scale_xsections[variation] = xsectionWithUncertainty
-                scale_envelope_lower, scale_envelope_upper = get_scale_envelope(options, scale_xsections, measurement['TTJets_powhegPythia8' ])
+                scale_envelope_lower, scale_envelope_upper = get_scale_envelope(scale_xsections, measurement['TTJets_powhegPythia8' ])
                 xsection_mc[source] = [
                                         scale_envelope_lower,
                                         scale_envelope_upper
                                         ]
                 pass
             else:
-                xsectionWithUncertainty_lower = measurement[variations[0]]
-                xsectionWithUncertainty_upper = measurement[variations[1]]
+                xsectionWithUncertainty_lower = deepcopy( measurement[variations[0]] )
+                xsectionWithUncertainty_upper = deepcopy( measurement[variations[1]] )
 
                 for i in range(0,len(xsectionWithUncertainty_lower)):
                     xsectionWithUncertainty_lower[i] = xsectionWithUncertainty_lower[i][0]
