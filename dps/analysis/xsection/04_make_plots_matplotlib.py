@@ -172,6 +172,7 @@ def read_xsection_measurement_results( category, channel, unc_type, scale_uncert
                     'TTJets_hdampdown'      : h_normalised_xsection_hdampdown,
                     # 'TTJets_erdOn'          : h_normalised_xsection_erdOn,
                     # 'TTJets_QCDbased_erdOn' : h_normalised_xsection_QCDbased_erdOn,
+                    # 'TTJets_GluonMove' : h_normalised_xsection_QCDbased_erdOn,
                     # 'TTJets_semiLepBrup'    : h_normalised_xsection_semiLepBrup,
                     # 'TTJets_semiLepBrdown'  : h_normalised_xsection_semiLepBrdown,
                     # 'TTJets_fragup'         : h_normalised_xsection_fragup,
