@@ -796,6 +796,7 @@ def save_covariance_matrices(options, d_Cov_Cor_matrices):
         table_outfile = table_outfile.replace("Covariance", "Correlation")
         create_covariance_matrix(cor, table_outfile)
         # make_covariance_plot(options, syst_name, correlation_matrix, label='Correlation')
+
     return
 
 def make_covariance_plot( options, syst_name, matrix, label='Covariance' ):    

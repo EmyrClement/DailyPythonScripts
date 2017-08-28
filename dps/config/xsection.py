@@ -82,7 +82,7 @@ class XSectionConfig():
         self.path_to_files = self.current_analysis_path
         path_to_files = self.path_to_files
 
-        # self.path_to_unfolding_histograms = '/storage/ec6821/DailyPythonScripts/new/DailyPythonScripts/unfolding/13TeV/'
+
         self.path_to_unfolding_histograms = '/hdfs/TopQuarkGroup/run2/unfolding/13TeV/EPS2017/'
         # self.path_to_unfolding_histograms = 'unfolding/13TeV/'
         path_to_unfolding_histograms = self.path_to_unfolding_histograms
