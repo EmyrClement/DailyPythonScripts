@@ -40,6 +40,7 @@ class Histogram_properties:
     ratio_y_limits = [0.7, 1.3] #[min, max]
     rebin = 1
     additional_text = ''
+    additional_text2 = ''
     preliminary = True
     cms_logo_location = 'left' # left|right
     ratio_y_title = 'I am the ratio'
