@@ -744,6 +744,7 @@ def compare_measurements( models = {}, measurements = {},
         histogram.linewidth = 4
         histogram.color = next( colorcycler )
         histogram.linestyle = next( linecycler ) 
+        histogram.fillstyle = 0
         rplt.hist( histogram, axex = axes, label = label )
     
     if match_models_to_measurements:
