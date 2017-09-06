@@ -169,7 +169,7 @@ def makeCondensedSystematicLatexTable(variables, inputPath, input_file_template,
 		variables_latex['MET'], 
 		variables_latex['WPT'], 
 		variables_latex['lepton_pt'], 
-		variables_latex['abs_lepton_eta'], 
+		variables_latex['abs_lepton_eta_coarse'], 
 		variables_latex['NJets']
 	)
 	latexTitle += '\t\t\hline\n'
@@ -182,14 +182,14 @@ def makeCondensedSystematicLatexTable(variables, inputPath, input_file_template,
 		MET_low 			= d_summarised_syst['MET']['Min'][col] 
 		WPT_low 			= d_summarised_syst['WPT']['Min'][col] 
 		lepton_pt_low	 	= d_summarised_syst['lepton_pt']['Min'][col] 
-		abs_lepton_eta_low 	= d_summarised_syst['abs_lepton_eta']['Min'][col] 
+		abs_lepton_eta_low 	= d_summarised_syst['abs_lepton_eta_coarse']['Min'][col] 
 		NJets_low 			= d_summarised_syst['NJets']['Min'][col]
 		HT_high 			= d_summarised_syst['HT']['Max'][col] 
 		ST_high 			= d_summarised_syst['ST']['Max'][col] 
 		MET_high 			= d_summarised_syst['MET']['Max'][col] 
 		WPT_high 			= d_summarised_syst['WPT']['Max'][col] 
 		lepton_pt_high	 	= d_summarised_syst['lepton_pt']['Max'][col] 
-		abs_lepton_eta_high = d_summarised_syst['abs_lepton_eta']['Max'][col] 
+		abs_lepton_eta_high = d_summarised_syst['abs_lepton_eta_coarse']['Max'][col] 
 		NJets_high 			= d_summarised_syst['NJets']['Max'][col]
 
 		# If less than 0.1 replace with '<0.1'
@@ -322,8 +322,8 @@ def makeCondensedSystematicLatexTable(variables, inputPath, input_file_template,
 		d_summarised_syst['WPT']['Max']['systematic'], 
 		d_summarised_syst['lepton_pt']['Min']['systematic'], 
 		d_summarised_syst['lepton_pt']['Max']['systematic'], 
-		d_summarised_syst['abs_lepton_eta']['Min']['systematic'], 
-		d_summarised_syst['abs_lepton_eta']['Max']['systematic'], 
+		d_summarised_syst['abs_lepton_eta_coarse']['Min']['systematic'], 
+		d_summarised_syst['abs_lepton_eta_coarse']['Max']['systematic'], 
 		d_summarised_syst['NJets']['Min']['systematic'],
 		d_summarised_syst['NJets']['Max']['systematic'],
 	)
@@ -650,7 +650,7 @@ if __name__ == '__main__':
 	########################################################################################################################
 	### PURITY/STABILITY/RESOLUTION 
 	########################################################################################################################
-	makeBinningLatexTable()
+	# makeBinningLatexTable()
 
 
 
