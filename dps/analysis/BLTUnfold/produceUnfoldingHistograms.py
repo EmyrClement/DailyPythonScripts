@@ -344,7 +344,7 @@ def main():
     filenames = glob.glob( file_name )
     for f in filenames:
         tree.Add(f)
-    # tree.Add(file_name)
+
     with root_open( outputFileName, 'recreate') as out:
             nEntries = tree.GetEntries()
             print 'Number of entries:',nEntries
@@ -539,8 +539,8 @@ def main():
             for event in tree:
                 branch = event.__getattr__
                 n+=1
-                # if not n%100000: print 'Processing event %.0f Progress : %.2g %%' % ( n, float(n)/nEntries*100 )
-                # if n > 1000: break
+                if not n%100000: print 'Processing event %.0f Progress : %.2g %%' % ( n, float(n)/nEntries*100 )
+                # if n > 100000: break
 
                 if maxEvents > 0 and n > maxEvents: break
 
@@ -809,7 +809,6 @@ def main():
                     if nOffline[channel.channelName] != 0 : 
                         # Fill phase space info
                         h = histograms[variable][channel.channelName]['phaseSpaceInfoHist']
-                        print 'Sum of weights, gen selection : ',nVis[channel.channelName]
                         h.SetBinContent(1, nVisNotOffline[channel.channelName] / nVis[channel.channelName])
                         # h.GetXaxis().SetBinLabel(1, "nVisNotOffline/nVis")
 

@@ -452,13 +452,10 @@ class XSectionConfig():
         self.unfolding_amcatnlo_herwig_raw = path_to_unfolding_histograms + 'unfolding_TTJets_%dTeV_amcatnloherwigpp.root' % self.centre_of_mass_energy
 
         # Choose central MC Sample
-        # self.unfolding_central_raw = self.unfolding_powheg_pythia8_raw
-        self.unfolding_central_raw = 'unfolding/13TeV/unfolding_TTJets_13TeV.root'
+        self.unfolding_central_raw = self.unfolding_powheg_pythia8_raw
 
         # Raw --> asymmetric
-        # self.unfolding_powheg_pythia8 = self.unfolding_powheg_pythia8_raw.replace( '.root', '_asymmetric_newPS.root' )
-        # self.unfolding_powheg_pythia8 = 'unfolding/13TeV_small/unfolding_TTJets_13TeV_asymmetric_newPS.root'
-        self.unfolding_powheg_pythia8 = 'unfolding/13TeV/unfolding_TTJets_13TeV_asymmetric_newPS.root'
+        self.unfolding_powheg_pythia8 = self.unfolding_powheg_pythia8_raw.replace( '.root', '_asymmetric_newPS.root' )
 
         self.unfolding_amcatnlo_pythia8 = self.unfolding_amcatnlo_pythia8_raw.replace( '.root', '_asymmetric_newPS.root' )
         self.unfolding_madgraphMLM = self.unfolding_madgraphMLM_raw.replace( '.root', '_asymmetric_newPS.root' )
