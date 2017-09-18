@@ -16,7 +16,7 @@ normalised_number = {
 			'WPT' : '04',
 			'NJets' : '05',
 			'lepton_pt' : '06',
-			'abs_lepton_eta' : '07',
+			'abs_lepton_eta_coarse' : '07',
 }
 
 absolute_number = {
@@ -26,7 +26,7 @@ absolute_number = {
 			'WPT' : '11',
 			'NJets' : '12',
 			'lepton_pt' : '13',
-			'abs_lepton_eta' : '14',
+			'abs_lepton_eta_coarse' : '14',
 }
 
 print '---> Normalised cross sections\n'
