@@ -52,8 +52,10 @@ class XSectionConfig():
         'WPT',
         'NJets',
         'lepton_pt',
-        # 'abs_lepton_eta',
-        'abs_lepton_eta_coarse'
+        'abs_lepton_eta',
+        'abs_lepton_eta_coarse',
+        'abs_lepton_eta_muonBins',
+
     ]
 
     # Used in 01
@@ -66,7 +68,8 @@ class XSectionConfig():
         'bjets_pt', 
         'bjets_eta',
         'abs_bjets_eta',
-        'abs_lepton_eta_coarse'
+        'abs_lepton_eta_coarse',
+        'abs_lepton_eta_muonBins'
     ]
 
     def __init__( self, centre_of_mass_energy ):
@@ -668,6 +671,7 @@ class XSectionConfig():
             "MET" : 0.00186599526208,
             "abs_lepton_eta" : 1.1970850305e-08,
             "abs_lepton_eta_coarse" : 1.1970850305e-08,
+            "abs_lepton_eta_muonBins" : 1.1970850305e-08,
         }
 
         self.tau_values_muon = {
@@ -679,6 +683,7 @@ class XSectionConfig():
             "MET" : 0.00240030731786,
             "abs_lepton_eta" : 2.29348568572e-06,
             "abs_lepton_eta_coarse" : 2.29348568572e-06,
+            "abs_lepton_eta_muonBins" : 2.29348568572e-06,
         }
 
         self.tau_values_combined = {
@@ -690,7 +695,7 @@ class XSectionConfig():
             "MET" : 0,
             "abs_lepton_eta" : 0,
             "abs_lepton_eta_coarse" : 0,
-
+            "abs_lepton_eta_muonBins" : 0,
            }
 
         # self.categories_and_prefixes['PU_down'] = '_PU_65835mb'
