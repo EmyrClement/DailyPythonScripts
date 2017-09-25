@@ -231,10 +231,10 @@ def get_unfolded_normalisation( TTJet_normalisation_results, category, channel, 
         'UnclusteredEnUp'            :  unfolding_files['file_for_UnclusteredEnUp'],
         'UnclusteredEnDown'          :  unfolding_files['file_for_UnclusteredEnDown'],
 
-        'Muon_up'                    :  unfolding_files['file_for_ElectronUp'],
-        'Muon_down'                  :  unfolding_files['file_for_ElectronDown'],
-        'Electron_up'                :  unfolding_files['file_for_MuonUp'],
-        'Electron_down'              :  unfolding_files['file_for_MuonDown'],
+        'Electron_up'                :  unfolding_files['file_for_ElectronUp'],
+        'Electron_down'              :  unfolding_files['file_for_ElectronDown'],
+        'Muon_up'                    :  unfolding_files['file_for_MuonUp'],
+        'Muon_down'                  :  unfolding_files['file_for_MuonDown'],
 
         'PileUp_up'                  :  unfolding_files['file_for_PUUp'],
         'PileUp_down'                :  unfolding_files['file_for_PUDown'],
@@ -258,6 +258,8 @@ def get_unfolded_normalisation( TTJet_normalisation_results, category, channel, 
             load_fakes = True,
             visiblePS = visiblePS,
         )
+
+
     # PDF Uncertainties
     elif category in pdf_uncertainties:
         print 'Doing category',category,'by changing response matrix'
